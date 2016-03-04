@@ -1,0 +1,35 @@
+{
+  "name": "virt-ui-touch_ripple",
+  "version": "0.0.1",
+  "description": "virt material ui touch_ripple",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bakasho-libs/virt-ui-touch_ripple.git"
+  },
+  "scripts": {
+    "example": "comn -f ./example/src/index.js -o ./example/index.js"
+  },
+  "main": "src/index.js",
+  "author": "Bakasho Team",
+  "license": "MIT",
+  "keywords": [
+    "virt-ui-touch_ripple",
+    "virt-ui-touch_ripple.js"
+  ],
+  "readmeFilename": "README.md",
+  "devDependencies": {
+    "comn": "git://github.com/nathanfaucett/comn.git",
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.11.2",
+    "grunt-jsbeautifier": "^0.2.7",
+    "virt-dom": "git://github.com/nathanfaucett/virt-dom.git"
+  },
+  "dependencies": {
+    "array-map": "git://github.com/nathanfaucett/array-map.git",
+    "css": "git://github.com/nathanfaucett/css.git",
+    "index_of": "git://github.com/nathanfaucett/index_of.git",
+    "prop_types": "git://github.com/nathanfaucett/prop_types.git",
+    "virt": "git://github.com/nathanfaucett/virt.git",
+    "virt-ui-circle_ripple": "git://github.com/bakasho-libs/virt-ui-circle_ripple.git"
+  }
+}
