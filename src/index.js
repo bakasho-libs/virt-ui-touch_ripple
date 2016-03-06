@@ -35,6 +35,7 @@ virt.Component.extend(TouchRipple, "virt-ui-TouchRipple");
 TouchRipple.propTypes = {
     abortOnScroll: propTypes.bool,
     centerRipple: propTypes.bool,
+    contentStyle: propTypes.object,
     color: propTypes.string,
     opacity: propTypes.number,
     style: propTypes.object
@@ -83,7 +84,7 @@ TouchRipplePrototype.start = function(e) {
         }
     }
 
-    if (!this.props.rippleCenter) {
+    if (!this.props.centerRipple) {
         TouchRipple_getData(this, e, onGetData);
     } else {
         TouchRipple_getDataCenter(this, e, onGetData);
@@ -118,7 +119,7 @@ function TouchRipple_getData(_this, e, callback) {
 
 function TouchRipple_getDataCenter(_this, e, callback) {
     _this.emitMessage("virt.getViewDimensions", {
-        id: this.getInternalId()
+        id: _this.getInternalId()
     }, function onGetViewDimensions(error, dimensions) {
         var width, height, size;
 
@@ -161,11 +162,9 @@ function RippleData(size, left, top) {
 
 TouchRipplePrototype.getStyles = function() {
     var styles = {
-        ripple: {
+        root: {
             overflow: "hidden",
-            position: "relative",
-            width: "100%",
-            height: "100%"
+            position: "relative"
         },
         ripples: {
             position: "absolute",
@@ -194,14 +193,14 @@ TouchRipplePrototype.render = function() {
 
     return (
         virt.createView("div", {
-                className: "virt-ui-Ripple",
+                className: "virt-ui-TouchRipple",
                 onMouseDown: this.onMouseDown,
                 onTouchTap: this.onTouchTap,
-                style: styles.ripple
+                style: extend(styles.root, props.style)
             },
             virt.createView("div", {
                     className: "ripples",
-                    style: extend(styles.ripples, props.style)
+                    style: extend(styles.ripples, props.ripplesStyle)
                 },
                 arrayMap(this.state.ripples, function(ripple) {
                     return (
@@ -221,7 +220,7 @@ TouchRipplePrototype.render = function() {
             ),
             virt.createView("div", {
                 className: "content",
-                style: extend(styles.content, props.content)
+                style: extend(styles.content, props.contentStyle)
             }, this.children)
         )
     );

@@ -86,27 +86,37 @@ AppPrototype.render = function() {
         virt.createView("div", {
                 className: "App"
             },
-            virt.createView("div", {
+            virt.createView("div",
+                virt.createView(TouchRipple, {
                     style: {
                         background: "#f00",
                         overflow: "hidden",
                         position: "relative",
                         width: "256px",
                         height: "128px"
-                    }
-                },
-                virt.createView(TouchRipple, "Touch Me")
+                    },
+                    contentStyle: {
+                        fontSize: "16px",
+                        padding: "54px 0px",
+                        textAlign: "center"
+                    },
+                }, "Touch Me")
             ),
-            virt.createView("div", {
+            virt.createView("div",
+                virt.createView(TouchRipple, {
                     style: {
                         background: "#f00",
                         overflow: "hidden",
                         position: "relative",
                         width: "128px",
                         height: "256px"
-                    }
-                },
-                virt.createView(TouchRipple, "Touch Me")
+                    },
+                    contentStyle: {
+                        fontSize: "16px",
+                        padding: "118px 0px",
+                        textAlign: "center"
+                    },
+                }, "Touch Me")
             )
         )
     );
@@ -228,6 +238,7 @@ virt.Component.extend(TouchRipple, "virt-ui-TouchRipple");
 TouchRipple.propTypes = {
     abortOnScroll: propTypes.bool,
     centerRipple: propTypes.bool,
+    contentStyle: propTypes.object,
     color: propTypes.string,
     opacity: propTypes.number,
     style: propTypes.object
@@ -276,7 +287,7 @@ TouchRipplePrototype.start = function(e) {
         }
     }
 
-    if (!this.props.rippleCenter) {
+    if (!this.props.centerRipple) {
         TouchRipple_getData(this, e, onGetData);
     } else {
         TouchRipple_getDataCenter(this, e, onGetData);
@@ -311,7 +322,7 @@ function TouchRipple_getData(_this, e, callback) {
 
 function TouchRipple_getDataCenter(_this, e, callback) {
     _this.emitMessage("virt.getViewDimensions", {
-        id: this.getInternalId()
+        id: _this.getInternalId()
     }, function onGetViewDimensions(error, dimensions) {
         var width, height, size;
 
@@ -354,11 +365,9 @@ function RippleData(size, left, top) {
 
 TouchRipplePrototype.getStyles = function() {
     var styles = {
-        ripple: {
+        root: {
             overflow: "hidden",
-            position: "relative",
-            width: "100%",
-            height: "100%"
+            position: "relative"
         },
         ripples: {
             position: "absolute",
@@ -387,14 +396,14 @@ TouchRipplePrototype.render = function() {
 
     return (
         virt.createView("div", {
-                className: "virt-ui-Ripple",
+                className: "virt-ui-TouchRipple",
                 onMouseDown: this.onMouseDown,
                 onTouchTap: this.onTouchTap,
-                style: styles.ripple
+                style: extend(styles.root, props.style)
             },
             virt.createView("div", {
                     className: "ripples",
-                    style: extend(styles.ripples, props.style)
+                    style: extend(styles.ripples, props.ripplesStyle)
                 },
                 arrayMap(this.state.ripples, function(ripple) {
                     return (
@@ -414,7 +423,7 @@ TouchRipplePrototype.render = function() {
             ),
             virt.createView("div", {
                 className: "content",
-                style: extend(styles.content, props.content)
+                style: extend(styles.content, props.contentStyle)
             }, this.children)
         )
     );
@@ -1390,7 +1399,7 @@ function isUndefined(value) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt/node_modules/is_native/src/index.js */
+/* ../../node_modules/virt/node_modules/is_array/node_modules/is_native/src/index.js */
 
 var isFunction = require(16),
     isNullOrUndefined = require(20),
@@ -2110,7 +2119,7 @@ NodePrototype.__mountChildren = function(renderedView, transaction) {
 
     this.renderedChildren = renderedChildren;
 
-    renderedView.children = arrayMap(renderedView.children, function(child, index) {
+    renderedView.children = arrayMap(renderedView.children, function renderChild(child, index) {
         var node, id;
 
         if (isPrimitiveView(child)) {
@@ -3429,7 +3438,7 @@ function diffChildren(node, previous, next, transaction) {
 
 function diffChild(root, parentNode, previous, next, previousChild, nextChild, parentId, index, transaction) {
     var node, id;
-
+    
     if (previousChild !== nextChild) {
         if (isNullOrUndefined(previousChild)) {
             if (isPrimitiveView(nextChild)) {
@@ -5082,6 +5091,16 @@ nodeHandlers["virt.getViewDimensions"] = function getWidth(data, callback) {
     }
 };
 
+nodeHandlers["virt.getViewProperty"] = function getWidth(data, callback) {
+    var node = findDOMNode(data.id);
+
+    if (node) {
+        callback(undefined, node[data.property]);
+    } else {
+        callback(new Error("getViewDimensions: No DOM node found with id " + data.id));
+    }
+};
+
 
 },
 function(require, exports, module, undefined, global) {
@@ -5217,7 +5236,7 @@ module.exports = domDimensions;
 function domDimensions(node) {
     var dimensions = new Dimensions(),
         clientRect;
-
+        
     if (isElement(node)) {
         clientRect = node.getBoundingClientRect();
 
@@ -5342,7 +5361,7 @@ domDimensions.outerHeight = function(node) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/node_modules/get_current_style/src/index.js */
+/* ../../node_modules/virt-dom/node_modules/dom_dimensions/node_modules/get_current_style/src/index.js */
 
 var supports = require(98),
     environment = require(99),
@@ -5390,7 +5409,7 @@ if (supports.dom && environment.document.defaultView) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/node_modules/is_element/src/index.js */
+/* ../../node_modules/virt-dom/node_modules/dom_dimensions/node_modules/is_element/src/index.js */
 
 var isNode = require(101);
 
@@ -5405,7 +5424,7 @@ function isElement(value) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/node_modules/supports/src/index.js */
+/* ../../node_modules/virt-dom/node_modules/dom_dimensions/node_modules/supports/src/index.js */
 
 var environment = require(99);
 
@@ -5425,7 +5444,7 @@ supports.touch = supports.dom && "ontouchstart" in environment.window;
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/node_modules/environment/src/index.js */
+/* ../../node_modules/virt-dom/node_modules/dom_dimensions/node_modules/environment/src/index.js */
 
 var environment = exports,
 
@@ -5458,7 +5477,7 @@ environment.document = typeof(document) !== "undefined" ? document : {};
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/node_modules/camelize/src/index.js */
+/* ../../node_modules/virt-dom/node_modules/dom_dimensions/node_modules/camelize/src/index.js */
 
 var reInflect = require(102),
     capitalizeString = require(103);
@@ -5489,7 +5508,7 @@ function camelize(string, lowFirstLetter) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/node_modules/is_node/src/index.js */
+/* ../../node_modules/virt-dom/node_modules/dom_dimensions/node_modules/is_node/src/index.js */
 
 var isString = require(18),
     isNullOrUndefined = require(20),
@@ -5519,14 +5538,14 @@ module.exports = isNode;
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/node_modules/re_inflect/src/index.js */
+/* ../../node_modules/virt-dom/node_modules/dom_dimensions/node_modules/re_inflect/src/index.js */
 
 module.exports = /[^A-Z-_ ]+|[A-Z][^A-Z-_ ]+|[^a-z-_ ]+/g;
 
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/node_modules/capitalize_string/src/index.js */
+/* ../../node_modules/virt-dom/node_modules/dom_dimensions/node_modules/capitalize_string/src/index.js */
 
 module.exports = capitalizeString;
 
@@ -5583,14 +5602,12 @@ sharedInputHandlers.getValue = function(data, callback) {
 
 sharedInputHandlers.setValue = function(data, callback) {
     var node = findDOMNode(data.id),
-        caret, value;
+        value;
 
     if (node) {
         value = data.value || "";
         if (value !== node.value) {
-            caret = domCaret.get(node);
             node.value = value;
-            domCaret.set(node, caret.start, caret.end);
         }
         callback();
     } else {
@@ -8878,7 +8895,7 @@ function getWhich(nativeEvent) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/src/events/getters/getEventKey.js */
+/* ../../node_modules/virt-dom/node_modules/get_event_key/src/index.js */
 
 var getEventCharCode = require(175);
 
@@ -8970,7 +8987,7 @@ function getEventKey(nativeEvent) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/virt-dom/src/events/getters/getEventCharCode.js */
+/* ../../node_modules/virt-dom/node_modules/get_event_char_code/src/index.js */
 
 module.exports = getEventCharCode;
 
@@ -9867,9 +9884,9 @@ css.lighten = require(208);
 function(require, exports, module, undefined, global) {
 /* ../../node_modules/prop_types/src/index.js */
 
-var i18n = require(221),
+var i18n = require(220),
     isArray = require(17),
-    isRegExp = require(222),
+    isRegExp = require(221),
     isNullOrUndefined = require(20),
     emptyFunction = require(35),
     isFunction = require(16),
@@ -9885,7 +9902,7 @@ i18n = i18n.create(true, true);
 
 
 if (!i18n.has("en", "prop_types.anonymous")) {
-    i18n.add("en", require(223));
+    i18n.add("en", require(222));
 }
 
 
@@ -10171,7 +10188,7 @@ CircleRipplePrototype.render = function() {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/fast_slice/src/index.js */
+/* ../../node_modules/css/node_modules/fast_slice/src/index.js */
 
 var clamp = require(209),
     isNumber = require(21);
@@ -11244,7 +11261,7 @@ function lighten(style, amount) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/clamp/src/index.js */
+/* ../../node_modules/css/node_modules/clamp/src/index.js */
 
 module.exports = clamp;
 
@@ -11340,14 +11357,12 @@ function prefixArray(prefix, array) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/color/src/index.js */
+/* ../../node_modules/css/node_modules/color/src/index.js */
 
 var mathf = require(216),
     vec3 = require(217),
     vec4 = require(218),
-    isNumber = require(21),
-    isString = require(18),
-    colorNames = require(219);
+    isNumber = require(21);
 
 
 var color = exports;
@@ -11359,10 +11374,10 @@ color.ArrayType = typeof(Float32Array) !== "undefined" ? Float32Array : mathf.Ar
 color.create = function(r, g, b, a) {
     var out = new color.ArrayType(4);
 
-    out[0] = isNumber(r) ? r : 0;
-    out[1] = isNumber(g) ? g : 0;
-    out[2] = isNumber(b) ? b : 0;
-    out[3] = isNumber(a) ? a : 1;
+    out[0] = r !== undefined ? r : 0;
+    out[1] = g !== undefined ? g : 0;
+    out[2] = b !== undefined ? b : 0;
+    out[3] = a !== undefined ? a : 1;
 
     return out;
 };
@@ -11435,17 +11450,17 @@ color.str = function(out) {
     return "Color(" + out[0] + ", " + out[1] + ", " + out[2] + ", " + out[3] + ")";
 };
 
-color.string = color.toString = color.str;
-
 color.set = function(out, r, g, b, a) {
-    if (isNumber(r)) {
-        out[0] = isNumber(r) ? r : 0;
-        out[1] = isNumber(g) ? g : 0;
-        out[2] = isNumber(b) ? b : 0;
-        out[3] = isNumber(a) ? a : 1;
-    } else if (isString(r)) {
+    var type = typeof(r);
+
+    if (type === "number") {
+        out[0] = r !== undefined ? r : 0;
+        out[1] = g !== undefined ? g : 0;
+        out[2] = b !== undefined ? b : 0;
+        out[3] = a !== undefined ? a : 1;
+    } else if (type === "string") {
         color.fromStyle(out, r);
-    } else if (r && r.length === +r.length) {
+    } else if (r.length === +r.length) {
         out[0] = r[0] || 0;
         out[1] = r[1] || 0;
         out[2] = r[2] || 0;
@@ -11489,7 +11504,6 @@ color.toHEX = function(out) {
 
 var rgb255 = /^rgb\((\d+),(?:\s+)?(\d+),(?:\s+)?(\d+)\)$/i,
     inv255 = 1 / 255;
-
 color.fromRGB = function(out, style) {
     var values = rgb255.exec(style);
     out[0] = mathf.min(255, Number(values[1])) * inv255;
@@ -11500,7 +11514,6 @@ color.fromRGB = function(out, style) {
 };
 
 var rgba255 = /^rgba\((\d+),(?:\s+)?(\d+),(?:\s+)?(\d+),(?:\s+)?((?:\.)?\d+(?:\.\d+)?)\)$/i;
-
 color.fromRGBA = function(out, style) {
     var values = rgba255.exec(style);
     out[0] = mathf.min(255, Number(values[1])) * inv255;
@@ -11512,7 +11525,6 @@ color.fromRGBA = function(out, style) {
 
 var rgb100 = /^rgb\((\d+)\%,(?:\s+)?(\d+)\%,(?:\s+)?(\d+)\%\)$/i,
     inv100 = 1 / 100;
-
 color.fromRGB100 = function(out, style) {
     var values = rgb100.exec(style);
     out[0] = mathf.min(100, Number(values[1])) * inv100;
@@ -11532,7 +11544,6 @@ color.fromHEX = function(out, style) {
 
 var hex3to6 = /#(.)(.)(.)/,
     hex3to6String = "#$1$1$2$2$3$3";
-
 color.fromHEX3 = function(out, style) {
     style = style.replace(hex3to6, hex3to6String);
     out[0] = parseInt(style.substr(1, 2), 16) * inv255;
@@ -11549,7 +11560,6 @@ color.fromColorName = function(out, style) {
 var hex6 = /^\#([0.0-9a-f]{6})$/i,
     hex3 = /^\#([0.0-9a-f])([0.0-9a-f])([0.0-9a-f])$/i,
     colorName = /^(\w+)$/i;
-
 color.fromStyle = function(out, style) {
     if (rgb255.test(style)) {
         return color.fromRGB(out, style);
@@ -11568,7 +11578,149 @@ color.fromStyle = function(out, style) {
     }
 };
 
-color.colorNames = colorNames;
+var colorNames = color.colorNames = {
+    aliceblue: "#f0f8ff",
+    antiquewhite: "#faebd7",
+    aqua: "#00ffff",
+    aquamarine: "#7fffd4",
+    azure: "#f0ffff",
+    beige: "#f5f5dc",
+    bisque: "#ffe4c4",
+    black: "#000000",
+    blanchedalmond: "#ffebcd",
+    blue: "#0000ff",
+    blueviolet: "#8a2be2",
+    brown: "#a52a2a",
+    burlywood: "#deb887",
+    cadetblue: "#5f9ea0",
+    chartreuse: "#7fff00",
+    chocolate: "#d2691e",
+    coral: "#ff7f50",
+    cornflowerblue: "#6495ed",
+    cornsilk: "#fff8dc",
+    crimson: "#dc143c",
+    cyan: "#00ffff",
+    darkblue: "#00008b",
+    darkcyan: "#008b8b",
+    darkgoldenrod: "#b8860b",
+    darkgray: "#a9a9a9",
+    darkgreen: "#006400",
+    darkkhaki: "#bdb76b",
+    darkmagenta: "#8b008b",
+    darkolivegreen: "#556b2f",
+    darkorange: "#ff8c00",
+    darkorchid: "#9932cc",
+    darkred: "#8b0000",
+    darksalmon: "#e9967a",
+    darkseagreen: "#8fbc8f",
+    darkslateblue: "#483d8b",
+    darkslategray: "#2f4f4f",
+    darkturquoise: "#00ced1",
+    darkviolet: "#9400d3",
+    deeppink: "#ff1493",
+    deepskyblue: "#00bfff",
+    dimgray: "#696969",
+    dodgerblue: "#1e90ff",
+    firebrick: "#b22222",
+    floralwhite: "#fffaf0",
+    forestgreen: "#228b22",
+    fuchsia: "#ff00ff",
+    gainsboro: "#dcdcdc",
+    ghostwhite: "#f8f8ff",
+    gold: "#ffd700",
+    goldenrod: "#daa520",
+    gray: "#808080",
+    green: "#008000",
+    greenyellow: "#adff2f",
+    grey: "#808080",
+    honeydew: "#f0fff0",
+    hotpink: "#ff69b4",
+    indianred: "#cd5c5c",
+    indigo: "#4b0082",
+    ivory: "#fffff0",
+    khaki: "#f0e68c",
+    lavender: "#e6e6fa",
+    lavenderblush: "#fff0f5",
+    lawngreen: "#7cfc00",
+    lemonchiffon: "#fffacd",
+    lightblue: "#add8e6",
+    lightcoral: "#f08080",
+    lightcyan: "#e0ffff",
+    lightgoldenrodyellow: "#fafad2",
+    lightgrey: "#d3d3d3",
+    lightgreen: "#90ee90",
+    lightpink: "#ffb6c1",
+    lightsalmon: "#ffa07a",
+    lightseagreen: "#20b2aa",
+    lightskyblue: "#87cefa",
+    lightslategray: "#778899",
+    lightsteelblue: "#b0c4de",
+    lightyellow: "#ffffe0",
+    lime: "#00ff00",
+    limegreen: "#32cd32",
+    linen: "#faf0e6",
+    magenta: "#ff00ff",
+    maroon: "#800000",
+    mediumaquamarine: "#66cdaa",
+    mediumblue: "#0000cd",
+    mediumorchid: "#ba55d3",
+    mediumpurple: "#9370d8",
+    mediumseagreen: "#3cb371",
+    mediumslateblue: "#7b68ee",
+    mediumspringgreen: "#00fa9a",
+    mediumturquoise: "#48d1cc",
+    mediumvioletred: "#c71585",
+    midnightblue: "#191970",
+    mintcream: "#f5fffa",
+    mistyrose: "#ffe4e1",
+    moccasin: "#ffe4b5",
+    navajowhite: "#ffdead",
+    navy: "#000080",
+    oldlace: "#fdf5e6",
+    olive: "#808000",
+    olivedrab: "#6b8e23",
+    orange: "#ffa500",
+    orangered: "#ff4500",
+    orchid: "#da70d6",
+    palegoldenrod: "#eee8aa",
+    palegreen: "#98fb98",
+    paleturquoise: "#afeeee",
+    palevioletred: "#d87093",
+    papayawhip: "#ffefd5",
+    peachpuff: "#ffdab9",
+    peru: "#cd853f",
+    pink: "#ffc0cb",
+    plum: "#dda0dd",
+    powderblue: "#b0e0e6",
+    purple: "#800080",
+    red: "#ff0000",
+    rosybrown: "#bc8f8f",
+    royalblue: "#4169e1",
+    saddlebrown: "#8b4513",
+    salmon: "#fa8072",
+    sandybrown: "#f4a460",
+    seagreen: "#2e8b57",
+    seashell: "#fff5ee",
+    sienna: "#a0522d",
+    silver: "#c0c0c0",
+    skyblue: "#87ceeb",
+    slateblue: "#6a5acd",
+    slategray: "#708090",
+    snow: "#fffafa",
+    springgreen: "#00ff7f",
+    steelblue: "#4682b4",
+    tan: "#d2b48c",
+    teal: "#008080",
+    thistle: "#d8bfd8",
+    tomato: "#ff6347",
+    turquoise: "#40e0d0",
+    violet: "#ee82ee",
+    wheat: "#f5deb3",
+    white: "#ffffff",
+    whitesmoke: "#f5f5f5",
+    yellow: "#ffff00",
+    yellowgreen: "#9acd32"
+};
 
 
 },
@@ -11592,19 +11744,17 @@ function toStyle(value) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/mathf/src/index.js */
+/* ../../node_modules/css/node_modules/color/node_modules/mathf/src/index.js */
 
 var keys = require(34),
-    clamp = require(209),
-    isNaNPolyfill = require(220);
+    isNaN = require(219);
 
 
 var mathf = exports,
 
-    NativeMath = global.Math,
+    NativeMath = Math,
 
-    hasFloat32Array = typeof(Float32Array) !== "undefined",
-    NativeFloat32Array = hasFloat32Array ? Float32Array : Array;
+    NativeFloat32Array = typeof(Float32Array) !== "undefined" ? Float32Array : Array;
 
 
 mathf.ArrayType = NativeFloat32Array;
@@ -11631,57 +11781,52 @@ mathf.SQRT2 = NativeMath.SQRT2;
 mathf.abs = NativeMath.abs;
 
 mathf.acos = NativeMath.acos;
-mathf.acosh = NativeMath.acosh || function acosh(x) {
+mathf.acosh = NativeMath.acosh || (NativeMath.acosh = function acosh(x) {
     return mathf.log(x + mathf.sqrt(x * x - 1));
-};
+});
 mathf.asin = NativeMath.asin;
-mathf.asinh = NativeMath.asinh || function asinh(x) {
+mathf.asinh = NativeMath.asinh || (NativeMath.asinh = function asinh(x) {
     if (x === -Infinity) {
         return x;
     } else {
         return mathf.log(x + mathf.sqrt(x * x + 1));
     }
-};
+});
 mathf.atan = NativeMath.atan;
 mathf.atan2 = NativeMath.atan2;
-mathf.atanh = NativeMath.atanh || function atanh(x) {
+mathf.atanh = NativeMath.atanh || (NativeMath.atanh = function atanh(x) {
     return mathf.log((1 + x) / (1 - x)) / 2;
-};
+});
 
-mathf.cbrt = NativeMath.cbrt || function cbrt(x) {
+mathf.cbrt = NativeMath.cbrt || (NativeMath.cbrt = function cbrt(x) {
     var y = mathf.pow(mathf.abs(x), 1 / 3);
     return x < 0 ? -y : y;
-};
+});
 
 mathf.ceil = NativeMath.ceil;
 
-mathf.clz32 = NativeMath.clz32 || function clz32(value) {
+mathf.clz32 = NativeMath.clz32 || (NativeMath.clz32 = function clz32(value) {
     value = +value >>> 0;
     return value ? 32 - value.toString(2).length : 32;
-};
+});
 
 mathf.cos = NativeMath.cos;
-mathf.cosh = NativeMath.cosh || function cosh(x) {
+mathf.cosh = NativeMath.cosh || (NativeMath.cosh = function cosh(x) {
     return (mathf.exp(x) + mathf.exp(-x)) / 2;
-};
+});
 
 mathf.exp = NativeMath.exp;
 
-mathf.expm1 = NativeMath.expm1 || function expm1(x) {
+mathf.expm1 = NativeMath.expm1 || (NativeMath.expm1 = function expm1(x) {
     return mathf.exp(x) - 1;
-};
+});
 
 mathf.floor = NativeMath.floor;
-mathf.fround = NativeMath.fround || (hasFloat32Array ?
-    function fround(x) {
-        return new NativeFloat32Array([x])[0];
-    } :
-    function fround(x) {
-        return x;
-    }
-);
+mathf.fround = NativeMath.fround || (NativeMath.fround = function fround(x) {
+    return new NativeFloat32Array([x])[0];
+});
 
-mathf.hypot = NativeMath.hypot || function hypot() {
+mathf.hypot = NativeMath.hypot || (NativeMath.hypot = function hypot() {
     var y = 0,
         i = -1,
         il = arguments.length - 1,
@@ -11698,30 +11843,30 @@ mathf.hypot = NativeMath.hypot || function hypot() {
     }
 
     return mathf.sqrt(y);
-};
+});
 
-mathf.imul = NativeMath.imul || function imul(a, b) {
+mathf.imul = NativeMath.imul || (NativeMath.imul = function imul(a, b) {
     var ah = (a >>> 16) & 0xffff,
         al = a & 0xffff,
         bh = (b >>> 16) & 0xffff,
         bl = b & 0xffff;
 
     return ((al * bl) + (((ah * bl + al * bh) << 16) >>> 0) | 0);
-};
+});
 
 mathf.log = NativeMath.log;
 
-mathf.log1p = NativeMath.log1p || function log1p(x) {
+mathf.log1p = NativeMath.log1p || (NativeMath.log1p = function log1p(x) {
     return mathf.log(1 + x);
-};
+});
 
-mathf.log10 = NativeMath.log10 || function log10(x) {
+mathf.log10 = NativeMath.log10 || (NativeMath.log10 = function log10(x) {
     return mathf.log(x) / mathf.LN10;
-};
+});
 
-mathf.log2 = NativeMath.log2 || function log2(x) {
+mathf.log2 = NativeMath.log2 || (NativeMath.log2 = function log2(x) {
     return mathf.log(x) / mathf.LN2;
-};
+});
 
 mathf.max = NativeMath.max;
 mathf.min = NativeMath.min;
@@ -11731,24 +11876,23 @@ mathf.pow = NativeMath.pow;
 mathf.random = NativeMath.random;
 mathf.round = NativeMath.round;
 
-mathf.sign = NativeMath.sign || function sign(x) {
+mathf.sign = NativeMath.sign || (NativeMath.sign = function sign(x) {
     x = +x;
-    if (x === 0 || isNaNPolyfill(x)) {
+    if (x === 0 || isNaN(x)) {
         return x;
     } else {
         return x > 0 ? 1 : -1;
     }
-};
+});
 
 mathf.sin = NativeMath.sin;
-mathf.sinh = NativeMath.sinh || function sinh(x) {
+mathf.sinh = NativeMath.sinh || (NativeMath.sinh = function sinh(x) {
     return (mathf.exp(x) - mathf.exp(-x)) / 2;
-};
-
+});
 mathf.sqrt = NativeMath.sqrt;
 
 mathf.tan = NativeMath.tan;
-mathf.tanh = NativeMath.tanh || function tanh(x) {
+mathf.tanh = NativeMath.tanh || (NativeMath.tanh = function tanh(x) {
     if (x === Infinity) {
         return 1;
     } else if (x === -Infinity) {
@@ -11756,18 +11900,19 @@ mathf.tanh = NativeMath.tanh || function tanh(x) {
     } else {
         return (mathf.exp(x) - mathf.exp(-x)) / (mathf.exp(x) + mathf.exp(-x));
     }
-};
+});
 
-mathf.trunc = NativeMath.trunc || function trunc(x) {
+mathf.trunc = NativeMath.trunc || (NativeMath.trunc = function trunc(x) {
     return x < 0 ? mathf.ceil(x) : mathf.floor(x);
-};
+});
 
 mathf.equals = function(a, b, e) {
-    return mathf.abs(a - b) < (e !== void(0) ? e : mathf.EPSILON);
+    return mathf.abs(a - b) < (e !== void 0 ? e : mathf.EPSILON);
 };
 
 mathf.modulo = function(a, b) {
     var r = a % b;
+
     return (r * b < 0) ? r + b : r;
 };
 
@@ -11784,7 +11929,9 @@ mathf.snap = function(x, y) {
     return m < (y * 0.5) ? x - m : x + y - m;
 };
 
-mathf.clamp = clamp;
+mathf.clamp = function(x, min, max) {
+    return x < min ? min : x > max ? max : x;
+};
 
 mathf.clampBottom = function(x, min) {
     return x < min ? min : x;
@@ -11795,13 +11942,7 @@ mathf.clampTop = function(x, max) {
 };
 
 mathf.clamp01 = function(x) {
-    if (x < 0) {
-        return 0;
-    } else if (x > 1) {
-        return 1;
-    } else {
-        return x;
-    }
+    return x < 0 ? 0 : x > 1 ? 1 : x;
 };
 
 mathf.truncate = function(x, n) {
@@ -12003,10 +12144,9 @@ mathf.direction = function(x, y) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/vec3/src/index.js */
+/* ../../node_modules/css/node_modules/color/node_modules/vec3/src/index.js */
 
-var mathf = require(216),
-    isNumber = require(21);
+var mathf = require(216);
 
 
 var vec3 = exports;
@@ -12018,9 +12158,9 @@ vec3.ArrayType = typeof(Float32Array) !== "undefined" ? Float32Array : mathf.Arr
 vec3.create = function(x, y, z) {
     var out = new vec3.ArrayType(3);
 
-    out[0] = isNumber(x) ? x : 0;
-    out[1] = isNumber(y) ? y : 0;
-    out[2] = isNumber(z) ? z : 0;
+    out[0] = x !== undefined ? x : 0;
+    out[1] = y !== undefined ? y : 0;
+    out[2] = z !== undefined ? z : 0;
 
     return out;
 };
@@ -12046,9 +12186,9 @@ vec3.clone = function(a) {
 
 vec3.set = function(out, x, y, z) {
 
-    out[0] = isNumber(x) ? x : 0;
-    out[1] = isNumber(y) ? y : 0;
-    out[2] = isNumber(z) ? z : 0;
+    out[0] = x !== undefined ? x : 0;
+    out[1] = y !== undefined ? y : 0;
+    out[2] = z !== undefined ? z : 0;
 
     return out;
 };
@@ -12327,21 +12467,6 @@ vec3.transformProjection = function(out, a, m) {
     return out;
 };
 
-vec3.transformProjectionNoPosition = function(out, a, m) {
-    var x = a[0],
-        y = a[1],
-        z = a[2],
-        d = x * m[3] + y * m[7] + z * m[11] + m[15];
-
-    d = d !== 0 ? 1 / d : d;
-
-    out[0] = (x * m[0] + y * m[4] + z * m[8]) * d;
-    out[1] = (x * m[1] + y * m[5] + z * m[9]) * d;
-    out[2] = (x * m[2] + y * m[6] + z * m[10]) * d;
-
-    return out;
-};
-
 vec3.transformQuat = function(out, a, q) {
     var x = a[0],
         y = a[1],
@@ -12407,18 +12532,16 @@ vec3.notEqual = function(a, b) {
 };
 
 vec3.str = function(out) {
+
     return "Vec3(" + out[0] + ", " + out[1] + ", " + out[2] + ")";
 };
-
-vec3.string = vec3.toString = vec3.str;
 
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/vec4/src/index.js */
+/* ../../node_modules/css/node_modules/color/node_modules/vec4/src/index.js */
 
-var mathf = require(216),
-    isNumber = require(21);
+var mathf = require(216);
 
 
 var vec4 = exports;
@@ -12430,10 +12553,10 @@ vec4.ArrayType = typeof(Float32Array) !== "undefined" ? Float32Array : mathf.Arr
 vec4.create = function(x, y, z, w) {
     var out = new vec4.ArrayType(4);
 
-    out[0] = isNumber(x) ? x : 0;
-    out[1] = isNumber(y) ? y : 0;
-    out[2] = isNumber(z) ? z : 0;
-    out[3] = isNumber(w) ? w : 1;
+    out[0] = x !== undefined ? x : 0;
+    out[1] = y !== undefined ? y : 0;
+    out[2] = z !== undefined ? z : 0;
+    out[3] = w !== undefined ? w : 1;
 
     return out;
 };
@@ -12461,10 +12584,10 @@ vec4.clone = function(a) {
 
 vec4.set = function(out, x, y, z, w) {
 
-    out[0] = isNumber(x) ? x : 0;
-    out[1] = isNumber(y) ? y : 0;
-    out[2] = isNumber(z) ? z : 0;
-    out[3] = isNumber(w) ? w : 1;
+    out[0] = x !== undefined ? x : 0;
+    out[1] = y !== undefined ? y : 0;
+    out[2] = z !== undefined ? z : 0;
+    out[3] = w !== undefined ? w : 0;
 
     return out;
 };
@@ -12772,181 +12895,31 @@ vec4.notEqual = function(a, b) {
 };
 
 vec4.str = function(out) {
+
     return "Vec4(" + out[0] + ", " + out[1] + ", " + out[2] + ", " + out[3] + ")";
 };
 
-vec4.string = vec4.toString = vec4.str;
-
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/color/src/colorNames.js */
-
-module.exports = {
-    aliceblue: "#f0f8ff",
-    antiquewhite: "#faebd7",
-    aqua: "#00ffff",
-    aquamarine: "#7fffd4",
-    azure: "#f0ffff",
-    beige: "#f5f5dc",
-    bisque: "#ffe4c4",
-    black: "#000000",
-    blanchedalmond: "#ffebcd",
-    blue: "#0000ff",
-    blueviolet: "#8a2be2",
-    brown: "#a52a2a",
-    burlywood: "#deb887",
-    cadetblue: "#5f9ea0",
-    chartreuse: "#7fff00",
-    chocolate: "#d2691e",
-    coral: "#ff7f50",
-    cornflowerblue: "#6495ed",
-    cornsilk: "#fff8dc",
-    crimson: "#dc143c",
-    cyan: "#00ffff",
-    darkblue: "#00008b",
-    darkcyan: "#008b8b",
-    darkgoldenrod: "#b8860b",
-    darkgray: "#a9a9a9",
-    darkgreen: "#006400",
-    darkkhaki: "#bdb76b",
-    darkmagenta: "#8b008b",
-    darkolivegreen: "#556b2f",
-    darkorange: "#ff8c00",
-    darkorchid: "#9932cc",
-    darkred: "#8b0000",
-    darksalmon: "#e9967a",
-    darkseagreen: "#8fbc8f",
-    darkslateblue: "#483d8b",
-    darkslategray: "#2f4f4f",
-    darkturquoise: "#00ced1",
-    darkviolet: "#9400d3",
-    deeppink: "#ff1493",
-    deepskyblue: "#00bfff",
-    dimgray: "#696969",
-    dodgerblue: "#1e90ff",
-    firebrick: "#b22222",
-    floralwhite: "#fffaf0",
-    forestgreen: "#228b22",
-    fuchsia: "#ff00ff",
-    gainsboro: "#dcdcdc",
-    ghostwhite: "#f8f8ff",
-    gold: "#ffd700",
-    goldenrod: "#daa520",
-    gray: "#808080",
-    green: "#008000",
-    greenyellow: "#adff2f",
-    grey: "#808080",
-    honeydew: "#f0fff0",
-    hotpink: "#ff69b4",
-    indianred: "#cd5c5c",
-    indigo: "#4b0082",
-    ivory: "#fffff0",
-    khaki: "#f0e68c",
-    lavender: "#e6e6fa",
-    lavenderblush: "#fff0f5",
-    lawngreen: "#7cfc00",
-    lemonchiffon: "#fffacd",
-    lightblue: "#add8e6",
-    lightcoral: "#f08080",
-    lightcyan: "#e0ffff",
-    lightgoldenrodyellow: "#fafad2",
-    lightgrey: "#d3d3d3",
-    lightgreen: "#90ee90",
-    lightpink: "#ffb6c1",
-    lightsalmon: "#ffa07a",
-    lightseagreen: "#20b2aa",
-    lightskyblue: "#87cefa",
-    lightslategray: "#778899",
-    lightsteelblue: "#b0c4de",
-    lightyellow: "#ffffe0",
-    lime: "#00ff00",
-    limegreen: "#32cd32",
-    linen: "#faf0e6",
-    magenta: "#ff00ff",
-    maroon: "#800000",
-    mediumaquamarine: "#66cdaa",
-    mediumblue: "#0000cd",
-    mediumorchid: "#ba55d3",
-    mediumpurple: "#9370d8",
-    mediumseagreen: "#3cb371",
-    mediumslateblue: "#7b68ee",
-    mediumspringgreen: "#00fa9a",
-    mediumturquoise: "#48d1cc",
-    mediumvioletred: "#c71585",
-    midnightblue: "#191970",
-    mintcream: "#f5fffa",
-    mistyrose: "#ffe4e1",
-    moccasin: "#ffe4b5",
-    navajowhite: "#ffdead",
-    navy: "#000080",
-    oldlace: "#fdf5e6",
-    olive: "#808000",
-    olivedrab: "#6b8e23",
-    orange: "#ffa500",
-    orangered: "#ff4500",
-    orchid: "#da70d6",
-    palegoldenrod: "#eee8aa",
-    palegreen: "#98fb98",
-    paleturquoise: "#afeeee",
-    palevioletred: "#d87093",
-    papayawhip: "#ffefd5",
-    peachpuff: "#ffdab9",
-    peru: "#cd853f",
-    pink: "#ffc0cb",
-    plum: "#dda0dd",
-    powderblue: "#b0e0e6",
-    purple: "#800080",
-    red: "#ff0000",
-    rosybrown: "#bc8f8f",
-    royalblue: "#4169e1",
-    saddlebrown: "#8b4513",
-    salmon: "#fa8072",
-    sandybrown: "#f4a460",
-    seagreen: "#2e8b57",
-    seashell: "#fff5ee",
-    sienna: "#a0522d",
-    silver: "#c0c0c0",
-    skyblue: "#87ceeb",
-    slateblue: "#6a5acd",
-    slategray: "#708090",
-    snow: "#fffafa",
-    springgreen: "#00ff7f",
-    steelblue: "#4682b4",
-    tan: "#d2b48c",
-    teal: "#008080",
-    thistle: "#d8bfd8",
-    tomato: "#ff6347",
-    turquoise: "#40e0d0",
-    violet: "#ee82ee",
-    wheat: "#f5deb3",
-    white: "#ffffff",
-    whitesmoke: "#f5f5f5",
-    yellow: "#ffff00",
-    yellowgreen: "#9acd32"
-};
-
-
-},
-function(require, exports, module, undefined, global) {
-/* ../../node_modules/is_nan/src/index.js */
+/* ../../node_modules/css/node_modules/color/node_modules/mathf/node_modules/is_nan/src/index.js */
 
 var isNumber = require(21);
 
 
-module.exports = Number.isNaN || function isNaN(value) {
-    return isNumber(value) && value !== value;
+module.exports = Number.isNaN || function isNaN(obj) {
+    return isNumber(obj) && obj !== obj;
 };
 
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/i18n/src/index.js */
+/* ../../node_modules/prop_types/node_modules/i18n/src/index.js */
 
 var isArray = require(17),
     isString = require(18),
     isObject = require(30),
-    format = require(224),
+    format = require(223),
     fastSlice = require(195),
     has = require(22),
     defineProperty = require(51);
@@ -13095,7 +13068,7 @@ function create(flatMode, throwMissingError) {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/is_regexp/src/index.js */
+/* ../../node_modules/prop_types/node_modules/is_regexp/src/index.js */
 
 var isObject = require(30);
 
@@ -13141,7 +13114,7 @@ module.exports = {
 
 },
 function(require, exports, module, undefined, global) {
-/* ../../node_modules/format/src/index.js */
+/* ../../node_modules/prop_types/node_modules/format/src/index.js */
 
 var isString = require(18),
     isObject = require(30),

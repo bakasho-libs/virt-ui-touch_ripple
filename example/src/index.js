@@ -25,27 +25,37 @@ AppPrototype.render = function() {
         virt.createView("div", {
                 className: "App"
             },
-            virt.createView("div", {
+            virt.createView("div",
+                virt.createView(TouchRipple, {
                     style: {
                         background: "#f00",
                         overflow: "hidden",
                         position: "relative",
                         width: "256px",
                         height: "128px"
-                    }
-                },
-                virt.createView(TouchRipple, "Touch Me")
+                    },
+                    contentStyle: {
+                        fontSize: "16px",
+                        padding: "54px 0px",
+                        textAlign: "center"
+                    },
+                }, "Touch Me")
             ),
-            virt.createView("div", {
+            virt.createView("div",
+                virt.createView(TouchRipple, {
                     style: {
                         background: "#f00",
                         overflow: "hidden",
                         position: "relative",
                         width: "128px",
                         height: "256px"
-                    }
-                },
-                virt.createView(TouchRipple, "Touch Me")
+                    },
+                    contentStyle: {
+                        fontSize: "16px",
+                        padding: "118px 0px",
+                        textAlign: "center"
+                    },
+                }, "Touch Me")
             )
         )
     );
