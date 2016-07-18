@@ -1,9 +1,9 @@
-var virt = require("virt"),
-    css = require("css"),
-    indexOf = require("index_of"),
-    extend = require("extend"),
-    arrayMap = require("array-map"),
-    propTypes = require("prop_types"),
+var virt = require("@nathanfaucett/virt"),
+    css = require("@nathanfaucett/css"),
+    indexOf = require("@nathanfaucett/index_of"),
+    extend = require("@nathanfaucett/extend"),
+    arrayMap = require("@nathanfaucett/array-map"),
+    propTypes = require("@nathanfaucett/prop_types"),
     CircleRipple = require("virt-ui-circle_ripple");
 
 

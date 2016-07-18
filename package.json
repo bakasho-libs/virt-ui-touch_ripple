@@ -18,18 +18,18 @@
   ],
   "readmeFilename": "README.md",
   "devDependencies": {
-    "comn": "git://github.com/nathanfaucett/comn.git",
+    "@nathanfaucett/comn": "^0.0.1",
     "grunt": "^0.4.5",
     "grunt-contrib-jshint": "^0.11.2",
     "grunt-jsbeautifier": "^0.2.7",
-    "virt-dom": "git://github.com/nathanfaucett/virt-dom.git"
+    "@nathanfaucett/virt-dom": "^0.0.1"
   },
   "dependencies": {
-    "array-map": "git://github.com/nathanfaucett/array-map.git",
-    "css": "git://github.com/nathanfaucett/css.git",
-    "index_of": "git://github.com/nathanfaucett/index_of.git",
-    "prop_types": "git://github.com/nathanfaucett/prop_types.git",
-    "virt": "git://github.com/nathanfaucett/virt.git",
+    "@nathanfaucett/array-map": "^0.0.1",
+    "@nathanfaucett/css": "^0.0.1",
+    "@nathanfaucett/index_of": "^0.0.1",
+    "@nathanfaucett/prop_types": "^0.0.1",
+    "@nathanfaucett/virt": "^0.0.1",
     "virt-ui-circle_ripple": "git://github.com/bakasho-libs/virt-ui-circle_ripple.git"
   }
 }
