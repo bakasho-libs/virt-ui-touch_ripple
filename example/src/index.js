@@ -14,7 +14,7 @@ AppPrototype = App.prototype;
 
 AppPrototype.getChildContext = function() {
     return {
-        muiTheme: {
+        theme: {
             styles: {}
         }
     };
