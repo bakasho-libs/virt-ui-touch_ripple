@@ -22,14 +22,14 @@
     "grunt": "^0.4.5",
     "grunt-contrib-jshint": "^0.11.2",
     "grunt-jsbeautifier": "^0.2.7",
-    "@nathanfaucett/virt-dom": "^0.0.3"
+    "@nathanfaucett/virt-dom": "^0.0.5"
   },
   "dependencies": {
     "@nathanfaucett/array-map": "^0.0.1",
     "@nathanfaucett/css": "^0.0.1",
     "@nathanfaucett/index_of": "^0.0.1",
     "@nathanfaucett/prop_types": "^0.0.1",
-    "@nathanfaucett/virt": "^0.0.2",
+    "@nathanfaucett/virt": "^0.0.4",
     "virt-ui-circle_ripple": "git://github.com/bakasho-libs/virt-ui-circle_ripple.git"
   }
 }
