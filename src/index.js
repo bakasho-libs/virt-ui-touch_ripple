@@ -7,7 +7,8 @@ var virt = require("@nathanfaucett/virt"),
     CircleRipple = require("virt-ui-circle_ripple");
 
 
-var TouchRipplePrototype;
+var CIRCLE_ID = 0,
+    TouchRipplePrototype;
 
 
 module.exports = TouchRipple;
@@ -19,7 +20,6 @@ function TouchRipple(props, children, context) {
     virt.Component.call(this, props, children, context);
 
     this.state = {
-        key: 0,
         ripples: []
     };
 
@@ -70,7 +70,7 @@ TouchRipplePrototype.start = function(e) {
             props = _this.props;
             state = _this.state;
 
-            data.key = state.key;
+            data.key = (CIRCLE_ID++).toString(36);
             data.color = props.color;
             data.opacity = props.opacity;
 
@@ -78,7 +78,6 @@ TouchRipplePrototype.start = function(e) {
             ripples[ripples.length] = data;
 
             _this.setState({
-                key: state.key + 1,
                 ripples: ripples
             });
         }
@@ -205,7 +204,7 @@ TouchRipplePrototype.render = function() {
                 arrayMap(this.state.ripples, function(ripple) {
                     return (
                         virt.createView(CircleRipple, {
-                            key: ripple.key,
+                            key: ripple.key + "",
                             color: ripple.color,
                             opacity: ripple.opacity,
                             top: ripple.top,
