@@ -204,7 +204,7 @@ TouchRipplePrototype.render = function() {
                 arrayMap(this.state.ripples, function(ripple) {
                     return (
                         virt.createView(CircleRipple, {
-                            key: ripple.key + "",
+                            key: ripple.key,
                             color: ripple.color,
                             opacity: ripple.opacity,
                             top: ripple.top,

@@ -76,7 +76,7 @@
         }
     };
 
-    global["o3jpcDxP-gQvN-4zoQ-4S60-8blL541G1fqih"] = function(asyncDependencies) {
+    global["ILpY6W04-Wwzh-4hNy-vyf5-JegBRkW1hF0sY"] = function(asyncDependencies) {
         var i = -1,
             il = asyncDependencies.length - 1,
             dependency, index;
@@ -441,7 +441,7 @@ TouchRipplePrototype.render = function() {
                 arrayMap(this.state.ripples, function(ripple) {
                     return (
                         virt.createView(CircleRipple, {
-                            key: ripple.key + "",
+                            key: ripple.key,
                             color: ripple.color,
                             opacity: ripple.opacity,
                             top: ripple.top,
@@ -12290,8 +12290,8 @@ function getPreciseType(propValue) {
 },
 function(require, exports, module, undefined, global) {
 /*@=-virt-ui-circle_ripple@0.0.1/src/index.js-=@*/
-var virt = require(1),
-    css = require(210),
+var virt = require(241),
+    css = require(242),
     propTypes = require(211);
 
 
@@ -12352,7 +12352,9 @@ CircleRipplePrototype.getStyle = function() {
         };
 
     css.borderRadius(style, "50%");
-    css.transition(style, "opacity 2s cubic-bezier(0.23, 1, 0.32, 1)", "transform 1s cubic-bezier(0.23, 1, 0.32, 1)");
+    css.transition(style,
+        "opacity 2000ms " + css.easing.out,
+        "transform 1000ms " + css.easing.out);
 
     if (this.state.fading) {
         css.opacity(style, 0);
@@ -15377,6 +15379,3540 @@ function baseFlattenObject(object, out) {
     }
 
     return out;
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/index.js-=@*/
+var View = require(243);
+
+
+var virt = exports;
+
+
+virt.Root = require(244);
+
+virt.Component = require(245);
+
+virt.View = View;
+virt.cloneView = View.clone;
+virt.createView = View.create;
+virt.createFactory = View.createFactory;
+
+virt.consts = require(246);
+
+virt.getChildKey = require(247);
+virt.getRootIdFromId = require(248);
+
+virt.isAncestorIdOf = require(249);
+virt.traverseAncestors = require(250);
+virt.traverseDescendants = require(251);
+virt.traverseTwoPhase = require(252);
+
+virt.context = require(253);
+virt.owner = require(254);
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/index.js-=@*/
+var arrayForEach = require(43),
+    indexOf = require(55),
+    fastSlice = require(142),
+    prefix = require(279),
+    properties = require(280),
+    transition = require(281),
+    textShadow = require(282),
+    nonPrefixProperties = require(283);
+
+
+var css = exports;
+
+
+arrayForEach(properties, function(key) {
+    if (indexOf(nonPrefixProperties, key) === -1) {
+        css[key] = function(styles, value) {
+            return prefix(styles, key, value, null, css.stopPrefix);
+        };
+    } else {
+        css[key] = function(styles, value) {
+            styles[key] = value;
+            return styles;
+        };
+    }
+});
+
+css.opacity = require(284);
+
+css.transition = function(styles) {
+    return transition(styles, fastSlice(arguments, 1));
+};
+css.textShadow = function(styles) {
+    return textShadow(styles, fastSlice(arguments, 1));
+};
+
+css.stopPrefix = false;
+css.prefixes = require(285);
+css.properties = properties;
+
+css.easing = require(286);
+css.colors = require(287);
+css.Styles = require(288);
+
+css.darken = require(289);
+css.fade = require(290);
+css.lighten = require(291);
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/View.js-=@*/
+var isPrimitive = require(17),
+    isFunction = require(18),
+    isArray = require(19),
+    isString = require(20),
+    isObject = require(21),
+    isNullOrUndefined = require(22),
+    isNumber = require(23),
+    has = require(24),
+    arrayMap = require(25),
+    extend = require(255),
+    propsToJSON = require(256),
+    owner = require(254),
+    context = require(253);
+
+
+var ViewPrototype;
+
+
+module.exports = View;
+
+
+function View(type, key, ref, props, children, owner, context) {
+    this.__owner = owner;
+    this.__context = context;
+    this.type = type;
+    this.key = key;
+    this.ref = ref;
+    this.props = props;
+    this.children = children;
+}
+ViewPrototype = View.prototype;
+
+ViewPrototype.__View__ = true;
+
+ViewPrototype.copy = function(view) {
+    this.__owner = view.__owner;
+    this.__context = view.__context;
+    this.type = view.type;
+    this.key = view.key;
+    this.ref = view.ref;
+    this.props = view.props;
+    this.children = view.children;
+    return this;
+};
+
+ViewPrototype.clone = function() {
+    return new View(this.type, this.key, this.ref, this.props, this.children, this.__owner, this.__context);
+};
+
+ViewPrototype.toJSON = function() {
+    return toJSON(this);
+};
+
+View.isView = isView;
+View.isPrimitiveView = isPrimitiveView;
+View.isViewComponent = isViewComponent;
+View.isViewJSON = isViewJSON;
+View.toJSON = toJSON;
+
+View.clone = function(view, config, children) {
+    var localHas = has,
+        props = extend({}, view.props),
+        key = view.key,
+        ref = view.ref,
+        viewOwner = view.__owner,
+        childrenLength = arguments.length - 2,
+        propName, childArray, i, il;
+
+    if (config) {
+        if (config.ref) {
+            ref = config.ref;
+            viewOwner = owner.current;
+        }
+        if (config.key) {
+            key = config.key;
+        }
+
+        for (propName in config) {
+            if (localHas(config, propName)) {
+                if (!(propName === "key" || propName === "ref")) {
+                    props[propName] = config[propName];
+                }
+            }
+        }
+    }
+
+    if (childrenLength === 1 && !isArray(children)) {
+        children = [children];
+    } else if (childrenLength > 1) {
+        childArray = new Array(childrenLength);
+        i = -1;
+        il = childrenLength - 1;
+        while (i++ < il) {
+            childArray[i] = arguments[i + 2];
+        }
+        children = childArray;
+    } else {
+        children = view.children;
+    }
+
+    return new View(view.type, key, ref, props, ensureValidChildren(children), viewOwner, context.current);
+};
+
+View.create = function(type, config, children) {
+    var isConfigArray = isArray(config),
+        argumentsLength = arguments.length;
+
+    if (isChild(config) || isConfigArray) {
+        if (isConfigArray) {
+            children = config;
+        } else if (argumentsLength > 1) {
+            children = extractChildren(arguments, 1);
+        }
+        config = null;
+    } else if (!isNullOrUndefined(children)) {
+        if (isArray(children)) {
+            children = children;
+        } else if (argumentsLength > 2) {
+            children = extractChildren(arguments, 2);
+        }
+    }
+
+    return construct(type, config, children);
+};
+
+View.createFactory = function(type) {
+    return function factory(config, children) {
+        var isConfigArray = isArray(config),
+            argumentsLength = arguments.length;
+
+        if (isChild(config) || isConfigArray) {
+            if (isConfigArray) {
+                children = config;
+            } else if (config && argumentsLength > 0) {
+                children = extractChildren(arguments, 0);
+            }
+            config = null;
+        } else if (!isNullOrUndefined(children)) {
+            if (isArray(children)) {
+                children = children;
+            } else if (argumentsLength > 1) {
+                children = extractChildren(arguments, 1);
+            }
+        }
+
+        return construct(type, config, children);
+    };
+};
+
+function construct(type, config, children) {
+    var localHas = has,
+        props = {},
+        key = null,
+        ref = null,
+        propName, defaultProps;
+
+    if (config) {
+        key = config.key != null ? config.key : null;
+        ref = config.ref != null ? config.ref : null;
+
+        for (propName in config) {
+            if (localHas(config, propName)) {
+                if (!(propName === "key" || propName === "ref")) {
+                    props[propName] = config[propName];
+                }
+            }
+        }
+    }
+
+    if (type && type.defaultProps) {
+        defaultProps = type.defaultProps;
+
+        for (propName in defaultProps) {
+            if (localHas(defaultProps, propName)) {
+                if (isNullOrUndefined(props[propName])) {
+                    props[propName] = defaultProps[propName];
+                }
+            }
+        }
+    }
+
+    return new View(type, key, ref, props, ensureValidChildren(children), owner.current, context.current);
+}
+
+function toJSON(view) {
+    if (isPrimitive(view)) {
+        return view;
+    } else {
+        return {
+            type: view.type,
+            key: view.key,
+            ref: view.ref,
+            props: propsToJSON(view.props),
+            children: arrayMap(view.children, toJSON)
+        };
+    }
+}
+
+function isView(obj) {
+    return isObject(obj) && obj.__View__ === true;
+}
+
+function isViewComponent(obj) {
+    return isView(obj) && isFunction(obj.type);
+}
+
+function isViewJSON(obj) {
+    return (
+        isObject(obj) &&
+        isString(obj.type) &&
+        isObject(obj.props) &&
+        isArray(obj.children)
+    );
+}
+
+function isPrimitiveView(object) {
+    return isString(object) || isNumber(object);
+}
+
+function isChild(object) {
+    return isView(object) || isPrimitiveView(object);
+}
+
+function extractChildren(args, offset) {
+    var children = [],
+        i = offset - 1,
+        il = args.length - 1,
+        j = 0,
+        arg;
+
+    while (i++ < il) {
+        arg = args[i];
+        if (!isNullOrUndefined(arg) && arg !== "" && !isArray(arg)) {
+            children[j++] = arg;
+        }
+    }
+
+    return children;
+}
+
+function ensureValidChildren(children) {
+    var i, il;
+
+    if (isArray(children)) {
+        i = -1;
+        il = children.length - 1;
+
+        while (i++ < il) {
+            if (!isChild(children[i])) {
+                throw new TypeError("child of a View must be a String, Number or a View");
+            }
+        }
+    } else {
+        children = [];
+    }
+
+    return children;
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Root.js-=@*/
+var process = require(16);
+var isFunction = require(18),
+    isNull = require(28),
+    isUndefined = require(29),
+    emptyFunction = require(36),
+    Transaction = require(257),
+    shouldUpdate = require(258),
+    EventManager = require(259),
+    Node = require(260);
+
+
+var RootPrototype,
+    ROOT_ID = 0;
+
+
+module.exports = Root;
+
+
+function Root() {
+
+    this.id = "." + (ROOT_ID++).toString(36);
+    this.childHash = {};
+
+    this.eventManager = new EventManager();
+
+    this.nativeComponents = {};
+    this.adapter = null;
+
+    this.__transactions = [];
+    this.__transactionCallbacks = [];
+    this.__currentTransaction = null;
+}
+RootPrototype = Root.prototype;
+
+RootPrototype.registerNativeComponent = function(type, constructor) {
+    this.nativeComponents[type] = constructor;
+};
+
+RootPrototype.appendNode = function(node) {
+    var id = node.id,
+        childHash = this.childHash;
+
+    if (isUndefined(childHash[id])) {
+        node.root = this;
+        childHash[id] = node;
+    } else {
+        throw new Error("Root appendNode(node) trying to override node at " + id);
+    }
+};
+
+RootPrototype.removeNode = function(node) {
+    var id = node.id,
+        childHash = this.childHash;
+
+    if (!isUndefined(childHash[id])) {
+        node.root = null;
+        delete childHash[id];
+    } else {
+        throw new Error("Root removeNode(node) trying to remove node that does not exists with id " + id);
+    }
+};
+
+RootPrototype.__processTransaction = function() {
+    var _this = this,
+        transactions = this.__transactions,
+        transactionCallbacks = this.__transactionCallbacks,
+        transaction, callback;
+
+    if (isNull(this.__currentTransaction) && transactions.length !== 0) {
+        this.__currentTransaction = transaction = transactions[0];
+        callback = transactionCallbacks[0];
+
+        this.adapter.messenger.emit("virt.handleTransaction", transaction, function onHandleTransaction() {
+
+            _this.__currentTransaction = null;
+
+            transactions.splice(0, 1);
+            transactionCallbacks.splice(0, 1);
+
+            transaction.queue.notifyAll();
+            transaction.destroy();
+
+            callback();
+
+            if (transactions.length !== 0) {
+                _this.__processTransaction();
+            }
+        });
+    }
+};
+
+RootPrototype.__enqueueTransaction = function(transaction, callback) {
+    var transactions = this.__transactions,
+        index = transactions.length;
+
+    transactions[index] = transaction;
+    this.__transactionCallbacks[index] = isFunction(callback) ? callback : emptyFunction;
+    this.__processTransaction();
+};
+
+RootPrototype.unmount = function(callback) {
+    var node = this.childHash[this.id],
+        transaction;
+
+    if (node) {
+        transaction = Transaction.create();
+
+        transaction.unmount(this.id);
+        node.__unmount(transaction);
+
+        this.__enqueueTransaction(transaction, callback);
+    }
+};
+
+RootPrototype.update = function(node, state, callback) {
+    var transaction = Transaction.create();
+
+    node.update(node.currentView, state, transaction);
+    this.__enqueueTransaction(transaction, callback);
+};
+
+RootPrototype.forceUpdate = function(node, callback) {
+    var transaction = Transaction.create();
+
+    node.forceUpdate(node.currentView, transaction);
+    this.__enqueueTransaction(transaction, callback);
+};
+
+RootPrototype.enqueueUpdate = function(node, nextState, callback) {
+    var _this = this,
+        transaction = this.__currentTransaction;
+
+    if (!isNull(transaction)) {
+        transaction.queue.enqueue(function onHandleTransaction() {
+            if (!isUndefined(_this.childHash[node.id])) {
+                _this.update(node, nextState, callback);
+            }
+        });
+    } else {
+        process.nextTick(function onNextTick() {
+            _this.update(node, nextState, callback);
+        });
+    }
+};
+
+RootPrototype.render = function(nextView, id, callback) {
+    var transaction = Transaction.create(),
+        node;
+
+    if (isFunction(id)) {
+        callback = id;
+        id = null;
+    }
+
+    id = id || this.id;
+    node = this.childHash[id];
+
+    if (node) {
+        if (shouldUpdate(node.currentView, nextView)) {
+
+            node.forceUpdate(nextView, transaction);
+            this.__enqueueTransaction(transaction, callback);
+
+            return this;
+        } else {
+            if (this.id === id) {
+                node.__unmount(transaction);
+                transaction.unmount(id);
+            } else {
+                node.unmount(transaction);
+            }
+        }
+    }
+
+    node = new Node(this.id, id, nextView);
+    this.appendNode(node);
+    node.mount(transaction);
+
+    this.__enqueueTransaction(transaction, callback);
+
+    return this;
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Component.js-=@*/
+var inherits = require(275),
+    extend = require(255),
+    componentState = require(269);
+
+
+var ComponentPrototype;
+
+
+module.exports = Component;
+
+
+function Component(props, children, context) {
+    this.__node = null;
+    this.__mountState = componentState.UNMOUNTED;
+    this.props = props;
+    this.children = children;
+    this.context = context;
+    this.state = null;
+    this.refs = {};
+}
+
+ComponentPrototype = Component.prototype;
+
+Component.extend = function(child, displayName) {
+    inherits(child, this);
+    child.displayName = child.prototype.displayName = displayName || ComponentPrototype.displayName;
+    return child;
+};
+
+ComponentPrototype.displayName = "virt.Component";
+
+ComponentPrototype.render = function() {
+    throw new Error("render() render must be defined on Components");
+};
+
+ComponentPrototype.setState = function(state, callback) {
+    var node = this.__node,
+        nextState = extend({}, this.state, state);
+
+    if (this.__mountState === componentState.MOUNTED) {
+        node.root.update(node, nextState, callback);
+    } else {
+        node.root.enqueueUpdate(node, nextState, callback);
+    }
+};
+
+ComponentPrototype.replaceState = function(state, callback) {
+    var node = this.__node;
+
+    if (this.__mountState === componentState.MOUNTED) {
+        node.root.update(node, state, callback);
+    } else {
+        node.root.enqueueUpdate(node, state, callback);
+    }
+};
+
+ComponentPrototype.forceUpdate = function(callback) {
+    var node = this.__node;
+
+    if (this.__mountState === componentState.MOUNTED) {
+        node.root.forceUpdate(node, callback);
+    } else {
+        node.root.enqueueUpdate(node, node.component.state, callback);
+    }
+};
+
+ComponentPrototype.isMounted = function() {
+    return this.__mountState === componentState.MOUNTED;
+};
+
+ComponentPrototype.getInternalId = function() {
+    return this.__node.id;
+};
+
+ComponentPrototype.emitMessage = function(name, data, callback) {
+    this.__node.root.adapter.messenger.emit(name, data, callback);
+};
+
+ComponentPrototype.sendMessage = ComponentPrototype.emitMessage;
+
+ComponentPrototype.onMessage = function(name, callback) {
+    this.__node.root.adapter.messenger.on(name, callback);
+};
+
+ComponentPrototype.offMessage = function(name, callback) {
+    this.__node.root.adapter.messenger.off(name, callback);
+};
+
+ComponentPrototype.onGlobalEvent = function(name, listener, callback) {
+    var root = this.__node.root,
+        eventManager = root.eventManager,
+        topLevelType = eventManager.propNameToTopLevel[name];
+
+    eventManager.globalOn(topLevelType, listener);
+    this.emitMessage("virt.onGlobalEvent", topLevelType, callback);
+};
+
+ComponentPrototype.offGlobalEvent = function(name, listener, callback) {
+    var root = this.__node.root,
+        eventManager = root.eventManager,
+        topLevelType = eventManager.propNameToTopLevel[name];
+
+    eventManager.globalOff(topLevelType, callback);
+    this.emitMessage("virt.offGlobalEvent", topLevelType, callback);
+};
+
+ComponentPrototype.getChildContext = function() {};
+
+ComponentPrototype.componentDidMount = function() {};
+
+ComponentPrototype.componentDidUpdate = function( /* previousProps, previousChildren, previousState, previousContext */ ) {};
+
+ComponentPrototype.componentWillMount = function() {};
+
+ComponentPrototype.componentWillUnmount = function() {};
+
+ComponentPrototype.componentWillReceiveProps = function( /* nextProps, nextChildren, nextContext */ ) {};
+
+ComponentPrototype.componentWillUpdate = function( /* nextProps, nextChildren, nextState, nextContext */ ) {};
+
+ComponentPrototype.shouldComponentUpdate = function( /* nextProps, nextChildren, nextState, nextContext */ ) {
+    return true;
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/consts.js-=@*/
+var keyMirror = require(53);
+
+
+module.exports = keyMirror([
+    "TEXT",
+    "REPLACE",
+    "PROPS",
+    "ORDER",
+    "INSERT",
+    "REMOVE",
+    "MOUNT",
+    "UNMOUNT"
+]);
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/getChildKey.js-=@*/
+var getViewKey = require(276);
+
+
+module.exports = getChildKey;
+
+
+function getChildKey(parentId, child, index) {
+    return parentId + "." + getViewKey(child, index);
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/getRootIdFromId.js-=@*/
+module.exports = getRootIdFromId;
+
+
+function getRootIdFromId(id) {
+    var index;
+
+    if (id && id.charAt(0) === "." && id.length > 1) {
+        index = id.indexOf(".", 1);
+        return index > -1 ? id.substr(0, index) : id;
+    } else {
+        return null;
+    }
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/isAncestorIdOf.js-=@*/
+var isBoundary = require(277);
+
+
+module.exports = isAncestorIdOf;
+
+
+function isAncestorIdOf(ancestorID, descendantID) {
+    return (
+        descendantID.indexOf(ancestorID) === 0 &&
+        isBoundary(descendantID, ancestorID.length)
+    );
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/traverseAncestors.js-=@*/
+var traversePath = require(278);
+
+
+module.exports = traverseAncestors;
+
+
+function traverseAncestors(id, callback) {
+    traversePath(id, "", callback, false, true);
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/traverseDescendants.js-=@*/
+var traversePath = require(278);
+
+
+module.exports = traverseDescendant;
+
+
+function traverseDescendant(id, callback) {
+    traversePath("", id, callback, true, false);
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/traverseTwoPhase.js-=@*/
+var traversePath = require(278);
+
+
+module.exports = traverseTwoPhase;
+
+
+function traverseTwoPhase(id, callback) {
+    if (id) {
+        traversePath(id, "", callback, false, true);
+        traversePath("", id, callback, true, false);
+    }
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/context.js-=@*/
+var context = exports;
+
+
+context.current = null;
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/owner.js-=@*/
+var owner = exports;
+
+
+owner.current = null;
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/extend@0.0.1/src/index.js-=@*/
+var keys = require(35);
+
+
+module.exports = extend;
+
+
+function extend(out) {
+    var i = 0,
+        il = arguments.length - 1;
+
+    while (i++ < il) {
+        baseExtend(out, arguments[i]);
+    }
+
+    return out;
+}
+
+function baseExtend(a, b) {
+    var objectKeys = keys(b),
+        i = -1,
+        il = objectKeys.length - 1,
+        key;
+
+    while (i++ < il) {
+        key = objectKeys[i];
+        a[key] = b[key];
+    }
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/propsToJSON.js-=@*/
+var has = require(24),
+    isNull = require(28),
+    isPrimitive = require(17);
+
+
+module.exports = propsToJSON;
+
+
+function propsToJSON(props) {
+    return toJSON(props, {});
+}
+
+function toJSON(props, json) {
+    var localHas = has,
+        key, value;
+
+    for (key in props) {
+        if (localHas(props, key)) {
+            value = props[key];
+
+            if (isPrimitive(value)) {
+                json = isNull(json) ? {} : json;
+                json[key] = value;
+            } else {
+                value = toJSON(value, null);
+                if (!isNull(value)) {
+                    json = isNull(json) ? {} : json;
+                    json[key] = value;
+                }
+            }
+        }
+    }
+
+    return json;
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/index.js-=@*/
+var createPool = require(41),
+    Queue = require(42),
+    has = require(24),
+    consts = require(246),
+    InsertPatch = require(261),
+    MountPatch = require(262),
+    UnmountPatch = require(263),
+    OrderPatch = require(264),
+    PropsPatch = require(265),
+    RemovePatch = require(266),
+    ReplacePatch = require(267),
+    TextPatch = require(268);
+
+
+var TransactionPrototype;
+
+
+module.exports = Transaction;
+
+
+function Transaction() {
+
+    this.queue = Queue.getPooled();
+
+    this.removes = {};
+    this.patches = {};
+
+    this.events = {};
+    this.eventsRemove = {};
+}
+createPool(Transaction);
+Transaction.consts = consts;
+TransactionPrototype = Transaction.prototype;
+
+Transaction.create = function() {
+    return Transaction.getPooled();
+};
+
+TransactionPrototype.destroy = function() {
+    Transaction.release(this);
+};
+
+function clearPatches(hash) {
+    var localHas = has,
+        id, array, j, jl;
+
+    for (id in hash) {
+        if (localHas(hash, id)) {
+            array = hash[id];
+            j = -1;
+            jl = array.length - 1;
+
+            while (j++ < jl) {
+                array[j].destroy();
+            }
+
+            delete hash[id];
+        }
+    }
+}
+
+function clearHash(hash) {
+    var localHas = has,
+        id;
+
+    for (id in hash) {
+        if (localHas(hash, id)) {
+            delete hash[id];
+        }
+    }
+}
+
+TransactionPrototype.destructor = function() {
+    clearPatches(this.patches);
+    clearPatches(this.removes);
+    clearHash(this.events);
+    clearHash(this.eventsRemove);
+    return this;
+};
+
+TransactionPrototype.mount = function(id, next) {
+    this.append(MountPatch.create(id, next));
+};
+
+TransactionPrototype.unmount = function(id) {
+    this.append(UnmountPatch.create(id));
+};
+
+TransactionPrototype.insert = function(id, childId, index, next) {
+    this.append(InsertPatch.create(id, childId, index, next));
+};
+
+TransactionPrototype.order = function(id, order) {
+    this.append(OrderPatch.create(id, order));
+};
+
+TransactionPrototype.props = function(id, previous, props) {
+    this.append(PropsPatch.create(id, previous, props));
+};
+
+TransactionPrototype.replace = function(id, childId, index, next) {
+    this.append(ReplacePatch.create(id, childId, index, next));
+};
+
+TransactionPrototype.text = function(id, index, next, props) {
+    this.append(TextPatch.create(id, index, next, props));
+};
+
+TransactionPrototype.remove = function(id, childId, index) {
+    this.appendRemove(RemovePatch.create(id, childId, index));
+};
+
+TransactionPrototype.event = function(id, type) {
+    var events = this.events,
+        eventArray = events[id] || (events[id] = []);
+
+    eventArray[eventArray.length] = type;
+};
+
+TransactionPrototype.removeEvent = function(id, type) {
+    var eventsRemove = this.eventsRemove,
+        eventArray = eventsRemove[id] || (eventsRemove[id] = []);
+
+    eventArray[eventArray.length] = type;
+};
+
+function append(hash, value) {
+    var id = value.id,
+        patchArray = hash[id] || (hash[id] = []);
+
+    patchArray[patchArray.length] = value;
+}
+
+TransactionPrototype.append = function(value) {
+    append(this.patches, value);
+};
+
+TransactionPrototype.appendRemove = function(value) {
+    append(this.removes, value);
+};
+
+TransactionPrototype.toJSON = function() {
+    return {
+        removes: this.removes,
+        patches: this.patches,
+
+        events: this.events,
+        eventsRemove: this.eventsRemove
+    };
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/shouldUpdate.js-=@*/
+var isString = require(20),
+    isNumber = require(23),
+    isNullOrUndefined = require(22);
+
+
+module.exports = shouldUpdate;
+
+
+function shouldUpdate(previous, next) {
+    if (isNullOrUndefined(previous) || isNullOrUndefined(next)) {
+        return false;
+    } else {
+        if (isString(previous) || isNumber(previous)) {
+            return isString(next) || isNumber(next);
+        } else {
+            return (
+                previous.type === next.type &&
+                previous.key === next.key
+            );
+        }
+    }
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/EventManager.js-=@*/
+var indexOf = require(55),
+    isUndefined = require(29);
+
+
+var EventManagerPrototype;
+
+
+module.exports = EventManager;
+
+
+function EventManager() {
+    this.propNameToTopLevel = {};
+    this.events = {};
+}
+EventManagerPrototype = EventManager.prototype;
+
+EventManagerPrototype.on = function(id, topLevelType, listener, transaction) {
+    var events = this.events,
+        event = events[topLevelType] || (events[topLevelType] = {});
+
+    event[id] = listener;
+    transaction.event(id, topLevelType);
+};
+EventManagerPrototype.off = function(id, topLevelType, transaction) {
+    var events = this.events,
+        event = events[topLevelType];
+
+    if (!isUndefined(event[id])) {
+        delete event[id];
+        transaction.removeEvent(id, topLevelType);
+    }
+};
+EventManagerPrototype.allOff = function(id, transaction) {
+    var events = this.events,
+        event, topLevelType;
+
+    for (topLevelType in events) {
+        if (!isUndefined((event = events[topLevelType])[id])) {
+            delete event[id];
+            transaction.removeEvent(id, topLevelType);
+        }
+    }
+};
+
+EventManagerPrototype.globalOn = function(topLevelType, listener) {
+    var events = this.events,
+        event = events[topLevelType] || (events[topLevelType] = {}),
+        global = event.global || (event.global = []),
+        index = indexOf(global, listener);
+
+    if (index === -1) {
+        global[global.length] = listener;
+    }
+};
+EventManagerPrototype.globalOff = function(topLevelType, listener) {
+    var events = this.events,
+        event = events[topLevelType] || (events[topLevelType] = {}),
+        global = event.global || (event.global = []),
+        index = indexOf(global, listener);
+
+    if (index !== -1) {
+        global.splice(index, 1);
+    }
+};
+EventManagerPrototype.globalAllOff = function() {
+    var events = this.events,
+        event = events[topLevelType] || (events[topLevelType] = {}),
+        global = event.global;
+
+    if (global) {
+        global.length = 0;
+    }
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Node.js-=@*/
+var process = require(16);
+var has = require(24),
+    arrayMap = require(25),
+    indexOf = require(55),
+    isNull = require(28),
+    isString = require(20),
+    isArray = require(19),
+    isFunction = require(18),
+    extend = require(255),
+    owner = require(254),
+    context = require(253),
+    shouldUpdate = require(258),
+    componentState = require(269),
+    getComponentClassForType = require(270),
+    View = require(243),
+    getChildKey = require(247),
+    emptyObject = require(271),
+    diffChildren, diffProps;
+
+
+var NodePrototype,
+    isPrimitiveView = View.isPrimitiveView;
+
+
+module.exports = Node;
+
+
+diffChildren = require(272);
+diffProps = require(273);
+
+
+function Node(parentId, id, currentView) {
+
+    this.parent = null;
+    this.parentId = parentId;
+    this.id = id;
+
+    this.context = null;
+
+    this.root = null;
+
+    this.ComponentClass = null;
+    this.component = null;
+
+    this.isBottomLevel = true;
+    this.isTopLevel = false;
+
+    this.renderedNode = null;
+    this.renderedChildren = null;
+
+    this.currentView = currentView;
+}
+
+NodePrototype = Node.prototype;
+
+NodePrototype.appendNode = function(node) {
+    var renderedChildren = this.renderedChildren;
+
+    this.root.appendNode(node);
+    node.parent = this;
+
+    renderedChildren[renderedChildren.length] = node;
+};
+
+NodePrototype.removeNode = function(node) {
+    var renderedChildren = this.renderedChildren,
+        index;
+
+    node.parent = null;
+
+    index = indexOf(renderedChildren, node);
+    if (index !== -1) {
+        renderedChildren.splice(index, 1);
+    }
+};
+
+NodePrototype.mountComponent = function() {
+    var currentView = this.currentView,
+        ComponentClass, component, props, children, context;
+
+    if (isFunction(currentView.type)) {
+        this.ComponentClass = ComponentClass = currentView.type;
+    } else {
+        this.ComponentClass = ComponentClass = getComponentClassForType(currentView.type, this.root.nativeComponents);
+        this.isTopLevel = true;
+    }
+
+    props = this.__processProps(currentView.props);
+    children = currentView.children;
+    context = this.__processContext(currentView.__context);
+
+    component = new ComponentClass(props, children, context);
+
+    this.component = component;
+
+    component.__node = this;
+    component.props = component.props || props;
+    component.children = component.children || children;
+    component.context = component.context || context;
+};
+
+NodePrototype.mount = function(transaction) {
+    transaction.mount(this.id, this.__mount(transaction));
+};
+
+NodePrototype.__mount = function(transaction) {
+    var renderedView, renderedNode, component;
+
+    this.context = context.current;
+    this.mountComponent();
+
+    renderedView = this.renderView();
+
+    if (this.isTopLevel !== true) {
+        renderedNode = this.renderedNode = new Node(this.parentId, this.id, renderedView);
+        renderedNode.root = this.root;
+        renderedNode.isBottomLevel = false;
+        renderedView = renderedNode.__mount(transaction);
+    } else {
+        mountEvents(this.id, renderedView.props, this.root.eventManager, transaction);
+        this.__mountChildren(renderedView, transaction);
+    }
+
+    component = this.component;
+    component.__mountState = componentState.MOUNTING;
+
+    if (component.componentWillMount) {
+        component.componentWillMount();
+    }
+
+    transaction.queue.enqueue(function onMount() {
+        component.__mountState = componentState.MOUNTED;
+        if (component.componentDidMount) {
+            component.componentDidMount();
+        }
+    });
+
+    this.__attachRefs();
+
+    return renderedView;
+};
+
+NodePrototype.__mountChildren = function(renderedView, transaction) {
+    var _this = this,
+        parentId = this.id,
+        renderedChildren = [];
+
+    this.renderedChildren = renderedChildren;
+
+    renderedView.children = arrayMap(renderedView.children, function renderChild(child, index) {
+        var node, id;
+
+        if (isPrimitiveView(child)) {
+            return child;
+        } else {
+            id = getChildKey(parentId, child, index);
+            node = new Node(parentId, id, child);
+            _this.appendNode(node);
+            return node.__mount(transaction);
+        }
+    });
+};
+
+NodePrototype.unmount = function(transaction) {
+    this.__unmount(transaction);
+    transaction.remove(this.parentId, this.id, 0);
+};
+
+NodePrototype.__unmount = function(transaction) {
+    var component = this.component;
+
+    if (this.isTopLevel !== true) {
+        this.renderedNode.__unmount(transaction);
+        this.renderedNode = null;
+    } else {
+        this.__unmountChildren(transaction);
+        this.root.eventManager.allOff(this.id, transaction);
+        this.renderedChildren = null;
+    }
+
+    component.__mountState = componentState.UNMOUNTING;
+
+    if (component.componentWillUnmount) {
+        component.componentWillUnmount();
+    }
+
+    if (this.isBottomLevel !== false) {
+        this.root.removeNode(this);
+    }
+
+    this.__detachRefs();
+
+    this.context = null;
+    this.component = null;
+    this.currentView = null;
+
+    transaction.queue.enqueue(function onUnmount() {
+        component.__mountState = componentState.UNMOUNTED;
+    });
+};
+
+NodePrototype.__unmountChildren = function(transaction) {
+    var renderedChildren = this.renderedChildren,
+        i = -1,
+        il = renderedChildren.length - 1;
+
+    while (i++ < il) {
+        renderedChildren[i].__unmount(transaction);
+    }
+};
+
+NodePrototype.update = function(nextView, nextState, transaction) {
+    this.receiveView(nextView, nextState, nextView.__context, transaction);
+};
+
+NodePrototype.forceUpdate = function(nextView, transaction) {
+    this.receiveView(nextView, this.component.state, nextView.__context, transaction);
+};
+
+NodePrototype.receiveView = function(nextView, nextState, nextContext, transaction) {
+    var prevView = this.currentView,
+        prevContext = this.context;
+
+    this.updateComponent(
+        prevView,
+        nextView,
+        nextState,
+        prevContext,
+        nextContext,
+        transaction
+    );
+};
+
+NodePrototype.updateComponent = function(
+    prevParentView, nextParentView, nextState, prevUnmaskedContext, nextUnmaskedContext, transaction
+) {
+    var component = this.component,
+        nextProps = component.props,
+        nextChildren = component.children,
+        nextContext = component.context;
+
+    component.__mountState = componentState.UPDATING;
+
+    if (prevParentView !== nextParentView) {
+        nextProps = this.__processProps(nextParentView.props);
+        nextChildren = nextParentView.children;
+        nextContext = this.__processContext(nextParentView.__context);
+
+        if (component.componentWillReceiveProps) {
+            component.componentWillReceiveProps(nextProps, nextChildren, nextContext);
+        }
+    }
+
+    if (
+        component.shouldComponentUpdate ?
+        component.shouldComponentUpdate(nextProps, nextChildren, nextState, nextContext) :
+        true
+    ) {
+        this.__updateComponent(
+            nextParentView, nextProps, nextChildren, nextState, nextContext, nextUnmaskedContext, transaction
+        );
+    } else {
+        this.currentView = nextParentView;
+        this.context = nextUnmaskedContext;
+
+        component.props = nextProps;
+        component.children = nextChildren;
+        component.state = nextState;
+        component.context = nextContext;
+
+        component.__mountState = componentState.MOUNTED;
+    }
+};
+
+NodePrototype.__updateComponent = function(
+    nextParentView, nextProps, nextChildren, nextState, nextContext, unmaskedContext, transaction
+) {
+    var component = this.component,
+
+        prevProps = component.props,
+        prevChildren = component.children,
+        prevState = component.__previousState,
+        prevContext = component.context,
+
+        prevParentView;
+
+    if (component.componentWillUpdate) {
+        component.componentWillUpdate(nextProps, nextChildren, nextState, nextContext);
+    }
+
+    component.props = nextProps;
+    component.children = nextChildren;
+    component.state = nextState;
+    component.context = nextContext;
+
+    this.context = unmaskedContext;
+
+    if (this.isTopLevel !== true) {
+        this.currentView = nextParentView;
+        this.__updateRenderedNode(unmaskedContext, transaction);
+    } else {
+        prevParentView = this.currentView;
+        this.currentView = nextParentView;
+        this.__updateRenderedView(prevParentView, unmaskedContext, transaction);
+    }
+
+    transaction.queue.enqueue(function onUpdate() {
+        component.__mountState = componentState.MOUNTED;
+        if (component.componentDidUpdate) {
+            component.componentDidUpdate(prevProps, prevChildren, prevState, prevContext);
+        }
+    });
+};
+
+NodePrototype.__updateRenderedNode = function(context, transaction) {
+    var prevNode = this.renderedNode,
+        prevRenderedView = prevNode.currentView,
+        nextRenderedView = this.renderView(),
+        renderedNode;
+
+    if (shouldUpdate(prevRenderedView, nextRenderedView)) {
+        prevNode.receiveView(nextRenderedView, this.component.state, this.__processChildContext(context), transaction);
+    } else {
+        prevNode.__unmount(transaction);
+
+        renderedNode = this.renderedNode = new Node(this.parentId, this.id, nextRenderedView);
+        renderedNode.root = this.root;
+        renderedNode.isBottomLevel = false;
+
+        transaction.replace(this.parentId, this.id, 0, renderedNode.__mount(transaction));
+    }
+
+    this.__attachRefs();
+};
+
+NodePrototype.__updateRenderedView = function(prevRenderedView, context, transaction) {
+    var id = this.id,
+        nextRenderedView = this.renderView(),
+        propsDiff = diffProps(
+            id,
+            this.root.eventManager,
+            transaction,
+            prevRenderedView.props,
+            nextRenderedView.props
+        );
+
+    if (!isNull(propsDiff)) {
+        transaction.props(id, prevRenderedView.props, propsDiff);
+    }
+
+    diffChildren(this, prevRenderedView, nextRenderedView, transaction);
+};
+
+NodePrototype.renderView = function() {
+    var currentView = this.currentView,
+        previousContext = context.current,
+        renderedView;
+
+    context.current = this.__processChildContext(currentView.__context);
+    owner.current = this.component;
+
+    renderedView = this.component.render();
+
+    renderedView.ref = currentView.ref;
+    renderedView.key = currentView.key;
+
+    context.current = previousContext;
+    owner.current = null;
+
+    return renderedView;
+};
+
+function warnError(error) {
+    var i, il;
+
+    if (isArray(error)) {
+        i = -1;
+        il = error.length - 1;
+        while (i++ < il) {
+            warnError(error[i]);
+        }
+    } else {
+        console.warn(error);
+    }
+}
+
+NodePrototype.__checkTypes = function(propTypes, props) {
+    var localHas = has,
+        displayName = this.__getName(),
+        propName, error;
+
+    if (propTypes) {
+        for (propName in propTypes) {
+            if (localHas(propTypes, propName)) {
+                error = propTypes[propName](props, propName, displayName);
+                if (error) {
+                    warnError(error);
+                }
+            }
+        }
+    }
+};
+
+NodePrototype.__processProps = function(props) {
+    var ComponentClass = this.ComponentClass,
+        propTypes;
+
+    if (process.env.NODE_ENV !== "production") {
+        propTypes = ComponentClass.propTypes;
+
+        if (propTypes) {
+            this.__checkTypes(propTypes, props);
+        }
+    }
+
+    return props;
+};
+
+NodePrototype.__maskContext = function(context) {
+    var maskedContext = null,
+        contextTypes, contextName, localHas;
+
+    if (isString(this.ComponentClass)) {
+        return emptyObject;
+    } else {
+        contextTypes = this.ComponentClass.contextTypes;
+
+        if (contextTypes) {
+            maskedContext = {};
+            localHas = has;
+
+            for (contextName in contextTypes) {
+                if (localHas(contextTypes, contextName)) {
+                    maskedContext[contextName] = context[contextName];
+                }
+            }
+        }
+
+        return maskedContext;
+    }
+};
+
+NodePrototype.__processContext = function(context) {
+    var maskedContext = this.__maskContext(context),
+        contextTypes;
+
+    if (process.env.NODE_ENV !== "production") {
+        contextTypes = this.ComponentClass.contextTypes;
+
+        if (contextTypes) {
+            this.__checkTypes(contextTypes, maskedContext);
+        }
+    }
+
+    return maskedContext;
+};
+
+NodePrototype.__processChildContext = function(currentContext) {
+    var component = this.component,
+        childContext = isFunction(component.getChildContext) ? component.getChildContext() : null,
+        childContextTypes, localHas, contextName, displayName;
+
+    if (childContext) {
+        childContextTypes = this.ComponentClass.childContextTypes;
+
+        if (process.env.NODE_ENV !== "production") {
+            if (childContextTypes) {
+                this.__checkTypes(childContextTypes, childContext);
+            }
+        }
+
+        if (childContextTypes) {
+            localHas = has;
+            displayName = this.__getName();
+
+            for (contextName in childContext) {
+                if (!localHas(childContextTypes, contextName)) {
+                    console.warn(new Error(
+                        displayName + " getChildContext(): key " + contextName + " is not defined in childContextTypes"
+                    ));
+                }
+            }
+        }
+
+        return extend({}, currentContext, childContext);
+    } else {
+        return currentContext;
+    }
+};
+
+NodePrototype.__attachRefs = function() {
+    var view = this.currentView,
+        ref = view.ref;
+
+    if (isString(ref)) {
+        attachRef(this.component, ref, view.__owner);
+    }
+};
+
+NodePrototype.__detachRefs = function() {
+    var view = this.currentView,
+        ref = view.ref;
+
+    if (isString(ref)) {
+        detachRef(ref, view.__owner);
+    }
+};
+
+NodePrototype.__getName = function() {
+    var type = this.currentView.type,
+        constructor;
+
+    if (isString(type)) {
+        return type;
+    } else {
+        constructor = this.component && this.component.constructor;
+        return type.displayName || (constructor && constructor.displayName) || null;
+    }
+};
+
+function attachRef(component, ref, owner) {
+    if (isString(ref)) {
+        if (owner) {
+            owner.refs[ref] = component;
+        } else {
+            throw new Error("cannot add ref to view without owner");
+        }
+
+    }
+}
+
+function detachRef(ref, owner) {
+    var refs = owner.refs;
+    delete refs[ref];
+}
+
+function mountEvents(id, props, eventManager, transaction) {
+    var propNameToTopLevel = eventManager.propNameToTopLevel,
+        localHas = has,
+        key;
+
+    for (key in props) {
+        if (localHas(propNameToTopLevel, key)) {
+            eventManager.on(id, propNameToTopLevel[key], props[key], transaction);
+        }
+    }
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/InsertPatch.js-=@*/
+var createPool = require(41),
+    consts = require(246);
+
+
+var InsertPatchPrototype;
+
+
+module.exports = InsertPatch;
+
+
+function InsertPatch() {
+    this.type = consts.INSERT;
+    this.id = null;
+    this.childId = null;
+    this.index = null;
+    this.next = null;
+}
+createPool(InsertPatch);
+InsertPatchPrototype = InsertPatch.prototype;
+
+InsertPatch.create = function(id, childId, index, next) {
+    var patch = InsertPatch.getPooled();
+    patch.id = id;
+    patch.childId = childId;
+    patch.index = index;
+    patch.next = next;
+    return patch;
+};
+
+InsertPatchPrototype.destructor = function() {
+    this.id = null;
+    this.childId = null;
+    this.index = null;
+    this.next = null;
+    return this;
+};
+
+InsertPatchPrototype.destroy = function() {
+    return InsertPatch.release(this);
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/MountPatch.js-=@*/
+var createPool = require(41),
+    consts = require(246);
+
+
+var MountPatchPrototype;
+
+
+module.exports = MountPatch;
+
+
+function MountPatch() {
+    this.type = consts.MOUNT;
+    this.id = null;
+    this.next = null;
+}
+createPool(MountPatch);
+MountPatchPrototype = MountPatch.prototype;
+
+MountPatch.create = function(id, next) {
+    var patch = MountPatch.getPooled();
+    patch.id = id;
+    patch.next = next;
+    return patch;
+};
+
+MountPatchPrototype.destructor = function() {
+    this.id = null;
+    this.next = null;
+    return this;
+};
+
+MountPatchPrototype.destroy = function() {
+    return MountPatch.release(this);
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/UnmountPatch.js-=@*/
+var createPool = require(41),
+    consts = require(246);
+
+
+var UnmountPatchPrototype;
+
+
+module.exports = UnmountPatch;
+
+
+function UnmountPatch() {
+    this.type = consts.UNMOUNT;
+    this.id = null;
+}
+createPool(UnmountPatch);
+UnmountPatchPrototype = UnmountPatch.prototype;
+
+UnmountPatch.create = function(id) {
+    var patch = UnmountPatch.getPooled();
+    patch.id = id;
+    return patch;
+};
+
+UnmountPatchPrototype.destructor = function() {
+    this.id = null;
+    return this;
+};
+
+UnmountPatchPrototype.destroy = function() {
+    return UnmountPatch.release(this);
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/OrderPatch.js-=@*/
+var createPool = require(41),
+    consts = require(246);
+
+
+var OrderPatchPrototype;
+
+
+module.exports = OrderPatch;
+
+
+function OrderPatch() {
+    this.type = consts.ORDER;
+    this.id = null;
+    this.order = null;
+}
+createPool(OrderPatch);
+OrderPatchPrototype = OrderPatch.prototype;
+
+OrderPatch.create = function(id, order) {
+    var patch = OrderPatch.getPooled();
+    patch.id = id;
+    patch.order = order;
+    return patch;
+};
+
+OrderPatchPrototype.destructor = function() {
+    this.id = null;
+    this.order = null;
+    return this;
+};
+
+OrderPatchPrototype.destroy = function() {
+    return OrderPatch.release(this);
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/PropsPatch.js-=@*/
+var createPool = require(41),
+    consts = require(246);
+
+
+var PropsPatchPrototype;
+
+
+module.exports = PropsPatch;
+
+
+function PropsPatch() {
+    this.type = consts.PROPS;
+    this.id = null;
+    this.previous = null;
+    this.next = null;
+}
+createPool(PropsPatch);
+PropsPatchPrototype = PropsPatch.prototype;
+
+PropsPatch.create = function(id, previous, next) {
+    var patch = PropsPatch.getPooled();
+    patch.id = id;
+    patch.previous = previous;
+    patch.next = next;
+    return patch;
+};
+
+PropsPatchPrototype.destructor = function() {
+    this.id = null;
+    this.previous = null;
+    this.next = null;
+    return this;
+};
+
+PropsPatchPrototype.destroy = function() {
+    return PropsPatch.release(this);
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/RemovePatch.js-=@*/
+var createPool = require(41),
+    consts = require(246);
+
+
+var RemovePatchPrototype;
+
+
+module.exports = RemovePatch;
+
+
+function RemovePatch() {
+    this.type = consts.REMOVE;
+    this.id = null;
+    this.childId = null;
+    this.index = null;
+}
+createPool(RemovePatch);
+RemovePatchPrototype = RemovePatch.prototype;
+
+RemovePatch.create = function(id, childId, index) {
+    var patch = RemovePatch.getPooled();
+    patch.id = id;
+    patch.childId = childId;
+    patch.index = index;
+    return patch;
+};
+
+RemovePatchPrototype.destructor = function() {
+    this.id = null;
+    this.childId = null;
+    this.index = null;
+    return this;
+};
+
+RemovePatchPrototype.destroy = function() {
+    return RemovePatch.release(this);
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/ReplacePatch.js-=@*/
+var createPool = require(41),
+    consts = require(246);
+
+
+var ReplacePatchPrototype;
+
+
+module.exports = ReplacePatch;
+
+
+function ReplacePatch() {
+    this.type = consts.REPLACE;
+    this.id = null;
+    this.childId = null;
+    this.index = null;
+    this.next = null;
+}
+createPool(ReplacePatch);
+ReplacePatchPrototype = ReplacePatch.prototype;
+
+ReplacePatch.create = function(id, childId, index, next) {
+    var patch = ReplacePatch.getPooled();
+    patch.id = id;
+    patch.childId = childId;
+    patch.index = index;
+    patch.next = next;
+    return patch;
+};
+
+ReplacePatchPrototype.destructor = function() {
+    this.id = null;
+    this.childId = null;
+    this.index = null;
+    this.next = null;
+    return this;
+};
+
+ReplacePatchPrototype.destroy = function() {
+    return ReplacePatch.release(this);
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/Transaction/TextPatch.js-=@*/
+var createPool = require(41),
+    propsToJSON = require(256),
+    consts = require(246);
+
+
+var TextPatchPrototype;
+
+
+module.exports = TextPatch;
+
+
+function TextPatch() {
+    this.type = consts.TEXT;
+    this.id = null;
+    this.index = null;
+    this.next = null;
+    this.props = null;
+}
+createPool(TextPatch);
+TextPatchPrototype = TextPatch.prototype;
+
+TextPatch.create = function(id, index, next, props) {
+    var patch = TextPatch.getPooled();
+    patch.id = id;
+    patch.index = index;
+    patch.next = next;
+    patch.props = props;
+    return patch;
+};
+
+TextPatchPrototype.destructor = function() {
+    this.id = null;
+    this.index = null;
+    this.next = null;
+    this.props = null;
+    return this;
+};
+
+TextPatchPrototype.destroy = function() {
+    return TextPatch.release(this);
+};
+
+TextPatchPrototype.toJSON = function() {
+    return {
+        type: this.type,
+        id: this.id,
+        index: this.index,
+        next: this.next,
+        props: propsToJSON(this.props)
+    };
+};
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/componentState.js-=@*/
+var keyMirror = require(53);
+
+
+module.exports = keyMirror([
+    "MOUNTING",
+    "MOUNTED",
+    "UPDATING",
+    "UNMOUNTING",
+    "UNMOUNTED"
+]);
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/getComponentClassForType.js-=@*/
+var createNativeComponentForType = require(274);
+
+
+module.exports = getComponentClassForType;
+
+
+function getComponentClassForType(type, rootNativeComponents) {
+    var Class = rootNativeComponents[type];
+
+    if (Class) {
+        return Class;
+    } else {
+        Class = createNativeComponentForType(type);
+        rootNativeComponents[type] = Class;
+        return Class;
+    }
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/emptyObject.js-=@*/
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/diffChildren.js-=@*/
+var isNull = require(28),
+    isUndefined = require(29),
+    isNullOrUndefined = require(22),
+    getChildKey = require(247),
+    shouldUpdate = require(258),
+    View = require(243),
+    Node;
+
+
+var isPrimitiveView = View.isPrimitiveView;
+
+
+module.exports = diffChildren;
+
+
+Node = require(260);
+
+
+function diffChildren(node, previous, next, transaction) {
+    var root = node.root,
+        previousChildren = previous.children,
+        nextChildren = reorder(previousChildren, next.children),
+        previousLength = previousChildren.length,
+        nextLength = nextChildren.length,
+        parentId = node.id,
+        i = -1,
+        il = (previousLength > nextLength ? previousLength : nextLength) - 1;
+
+    while (i++ < il) {
+        diffChild(root, node, previous, next, previousChildren[i], nextChildren[i], parentId, i, transaction);
+    }
+
+    if (nextChildren.moves) {
+        transaction.order(parentId, nextChildren.moves);
+    }
+}
+
+function diffChild(root, parentNode, previous, next, previousChild, nextChild, parentId, index, transaction) {
+    var node, id;
+
+    if (previousChild !== nextChild) {
+        if (isNullOrUndefined(previousChild)) {
+            if (isPrimitiveView(nextChild)) {
+                transaction.insert(parentId, null, index, nextChild);
+            } else {
+                id = getChildKey(parentId, nextChild, index);
+                node = new Node(parentId, id, nextChild);
+                parentNode.appendNode(node);
+                transaction.insert(parentId, id, index, node.__mount(transaction));
+            }
+        } else if (isPrimitiveView(previousChild)) {
+            if (isNullOrUndefined(nextChild)) {
+                transaction.remove(parentId, null, index);
+            } else if (isPrimitiveView(nextChild)) {
+                transaction.text(parentId, index, nextChild, next.props);
+            } else {
+                id = getChildKey(parentId, nextChild, index);
+                node = new Node(parentId, id, nextChild);
+                parentNode.appendNode(node);
+                transaction.replace(parentId, id, index, node.__mount(transaction));
+            }
+        } else {
+            if (isNullOrUndefined(nextChild)) {
+                id = getChildKey(parentId, previousChild, index);
+                node = root.childHash[id];
+                if (node) {
+                    node.unmount(transaction);
+                    parentNode.removeNode(node);
+                }
+            } else if (isPrimitiveView(nextChild)) {
+                transaction.replace(parentId, null, index, nextChild);
+            } else {
+                id = getChildKey(parentId, previousChild, index);
+                node = root.childHash[id];
+
+                if (node) {
+                    if (shouldUpdate(previousChild, nextChild)) {
+                        node.forceUpdate(nextChild, transaction);
+                    } else {
+                        node.__unmount(transaction);
+                        parentNode.removeNode(node);
+
+                        id = getChildKey(parentId, nextChild, index);
+                        node = new Node(parentId, id, nextChild);
+                        parentNode.appendNode(node);
+                        transaction.replace(parentId, id, index, node.__mount(transaction));
+                    }
+                } else {
+                    id = getChildKey(parentId, nextChild, index);
+                    node = new Node(parentId, id, nextChild);
+                    parentNode.appendNode(node);
+                    transaction.insert(parentId, id, index, node.__mount(transaction));
+                }
+            }
+        }
+    }
+}
+
+function reorder(previousChildren, nextChildren) {
+    var previousKeys, nextKeys, previousMatch, nextMatch, key, previousLength, nextLength,
+        length, shuffle, freeIndex, i, moveIndex, moves, removes, reverse, hasMoves, move, freeChild;
+
+    nextKeys = keyIndex(nextChildren);
+    if (isNull(nextKeys)) {
+        return nextChildren;
+    }
+
+    previousKeys = keyIndex(previousChildren);
+    if (isNull(previousKeys)) {
+        return nextChildren;
+    }
+
+    nextMatch = {};
+    previousMatch = {};
+
+    for (key in nextKeys) {
+        nextMatch[nextKeys[key]] = previousKeys[key];
+    }
+
+    for (key in previousKeys) {
+        previousMatch[previousKeys[key]] = nextKeys[key];
+    }
+
+    previousLength = previousChildren.length;
+    nextLength = nextChildren.length;
+    length = previousLength > nextLength ? previousLength : nextLength;
+    shuffle = [];
+    freeIndex = 0;
+    i = 0;
+    moveIndex = 0;
+    moves = {};
+    removes = moves.removes = {};
+    reverse = moves.reverse = {};
+    hasMoves = false;
+
+    while (freeIndex < length) {
+        move = previousMatch[i];
+
+        if (!isUndefined(move)) {
+            shuffle[i] = nextChildren[move];
+
+            if (move !== moveIndex) {
+                moves[move] = moveIndex;
+                reverse[moveIndex] = move;
+                hasMoves = true;
+            }
+
+            moveIndex++;
+        } else if (i in previousMatch) {
+            shuffle[i] = void(0);
+            removes[i] = moveIndex++;
+            hasMoves = true;
+        } else {
+            while (!isUndefined(nextMatch[freeIndex])) {
+                freeIndex++;
+            }
+
+            if (freeIndex < length) {
+                freeChild = nextChildren[freeIndex];
+
+                if (freeChild) {
+                    shuffle[i] = freeChild;
+                    if (freeIndex !== moveIndex) {
+                        hasMoves = true;
+                        moves[freeIndex] = moveIndex;
+                        reverse[moveIndex] = freeIndex;
+                    }
+                    moveIndex++;
+                }
+                freeIndex++;
+            }
+        }
+        i++;
+    }
+
+    if (hasMoves) {
+        shuffle.moves = moves;
+    }
+
+    return shuffle;
+}
+
+function keyIndex(children) {
+    var i = -1,
+        il = children.length - 1,
+        keys = null,
+        child;
+
+    while (i++ < il) {
+        child = children[i];
+
+        if (!isNullOrUndefined(child.key)) {
+            keys = keys || {};
+            keys[child.key] = i;
+        }
+    }
+
+    return keys;
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/diffProps.js-=@*/
+var has = require(24),
+    isObject = require(21),
+    getPrototypeOf = require(34),
+    isNull = require(28),
+    isNullOrUndefined = require(22);
+
+
+module.exports = diffProps;
+
+
+function diffProps(id, eventManager, transaction, previous, next) {
+    var result = null,
+        localHas = has,
+        propNameToTopLevel = eventManager.propNameToTopLevel,
+        key, previousValue, nextValue, propsDiff;
+
+    for (key in previous) {
+        nextValue = next[key];
+
+        if (isNullOrUndefined(nextValue)) {
+            result = result || {};
+            result[key] = undefined;
+
+            if (localHas(propNameToTopLevel, key)) {
+                eventManager.off(id, propNameToTopLevel[key], transaction);
+            }
+        } else {
+            previousValue = previous[key];
+
+            if (previousValue === nextValue) {
+                continue;
+            } else if (isObject(previousValue) && isObject(nextValue)) {
+                if (getPrototypeOf(previousValue) !== getPrototypeOf(nextValue)) {
+                    result = result || {};
+                    result[key] = nextValue;
+                } else {
+                    propsDiff = diffProps(id, eventManager, transaction, previousValue, nextValue);
+                    if (!isNull(propsDiff)) {
+                        result = result || {};
+                        result[key] = propsDiff;
+                    }
+                }
+            } else {
+                result = result || {};
+                result[key] = nextValue;
+            }
+        }
+    }
+
+    for (key in next) {
+        if (isNullOrUndefined(previous[key])) {
+            nextValue = next[key];
+
+            result = result || {};
+            result[key] = nextValue;
+
+            if (localHas(propNameToTopLevel, key)) {
+                eventManager.on(id, propNameToTopLevel[key], nextValue, transaction);
+            }
+        }
+    }
+
+    return result;
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/createNativeComponentForType.js-=@*/
+var View = require(243),
+    Component = require(245);
+
+
+module.exports = createNativeComponentForType;
+
+
+function createNativeComponentForType(type) {
+
+    function NativeComponent(props, children) {
+        Component.call(this, props, children);
+    }
+    Component.extend(NativeComponent, type);
+
+    NativeComponent.prototype.render = function() {
+        return new View(type, null, null, this.props, this.children, null, null);
+    };
+
+    return NativeComponent;
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/inherits@0.0.1/src/index.js-=@*/
+var create = require(63),
+    extend = require(255),
+    mixin = require(64),
+    defineProperty = require(52);
+
+
+var descriptor = {
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: null
+};
+
+
+module.exports = inherits;
+
+
+function inherits(child, parent) {
+
+    mixin(child, parent);
+
+    if (child.__super) {
+        child.prototype = extend(create(parent.prototype), child.__super, child.prototype);
+    } else {
+        child.prototype = extend(create(parent.prototype), child.prototype);
+    }
+
+    defineNonEnumerableProperty(child, "__super", parent.prototype);
+    defineNonEnumerableProperty(child.prototype, "constructor", child);
+
+    child.defineStatic = defineStatic;
+    child.super_ = parent;
+
+    return child;
+}
+inherits.defineProperty = defineNonEnumerableProperty;
+
+function defineNonEnumerableProperty(object, name, value) {
+    descriptor.value = value;
+    defineProperty(object, name, descriptor);
+    descriptor.value = null;
+}
+
+function defineStatic(name, value) {
+    defineNonEnumerableProperty(this, name, value);
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/getViewKey.js-=@*/
+var isNullOrUndefined = require(22);
+
+
+var reEscape = /[=.:]/g;
+
+
+module.exports = getViewKey;
+
+
+function getViewKey(view, index) {
+    var key = view.key;
+
+    if (isNullOrUndefined(key)) {
+        return index.toString(36);
+    } else {
+        return "$" + escapeKey(key);
+    }
+}
+
+function escapeKey(key) {
+    return (key + "").replace(reEscape, "$");
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/isBoundary.js-=@*/
+module.exports = isBoundary;
+
+
+function isBoundary(id, index) {
+    return id.charAt(index) === "." || index === id.length;
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/virt@0.0.4/src/utils/traversePath.js-=@*/
+var isBoundary = require(277),
+    isAncestorIdOf = require(249);
+
+
+module.exports = traversePath;
+
+
+function traversePath(start, stop, callback, skipFirst, skipLast) {
+    var traverseUp = isAncestorIdOf(stop, start),
+        traverse = traverseUp ? getParentID : getNextDescendantID,
+        id = start,
+        ret;
+
+    while (true) {
+        if ((!skipFirst || id !== start) && (!skipLast || id !== stop)) {
+            ret = callback(id, traverseUp);
+        }
+        if (ret === false || id === stop) {
+            break;
+        }
+
+        id = traverse(id, stop);
+    }
+}
+
+function getNextDescendantID(ancestorID, destinationID) {
+    var start, i, il;
+
+    if (ancestorID === destinationID) {
+        return ancestorID;
+    } else {
+        start = ancestorID.length + 1;
+        i = start - 1;
+        il = destinationID.length - 1;
+
+        while (i++ < il) {
+            if (isBoundary(destinationID, i)) {
+                break;
+            }
+        }
+
+        return destinationID.substr(0, i);
+    }
+}
+
+function getParentID(id) {
+    return id ? id.substr(0, id.lastIndexOf(".")) : "";
+}
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/prefix.js-=@*/
+var prefixes = require(285),
+    capitalizeString = require(98);
+
+
+module.exports = prefix;
+
+
+function prefix(styles, key, value, prefixValue, stopPrefix) {
+    var i, il, pre;
+
+    if (stopPrefix !== true) {
+        prefixValue = prefixValue === true;
+        i = -1;
+        il = prefixes.length - 1;
+
+        while (i++ < il) {
+            pre = prefixes[i];
+            styles[pre.js + capitalizeString(key)] = prefixValue ? pre.css + value : value;
+        }
+    }
+
+    styles[key] = value;
+
+    return styles;
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/properties.js-=@*/
+module.exports = [
+    "parentRule",
+    "length",
+    "cssText",
+    "alignContent",
+    "alignItems",
+    "alignSelf",
+    "alignmentBaseline",
+    "all",
+    "animation",
+    "animationDelay",
+    "animationDirection",
+    "animationDuration",
+    "animationFillMode",
+    "animationIterationCount",
+    "animationName",
+    "animationPlayState",
+    "animationTimingFunction",
+    "backfaceVisibility",
+    "background",
+    "backgroundAttachment",
+    "backgroundBlendMode",
+    "backgroundClip",
+    "backgroundColor",
+    "backgroundImage",
+    "backgroundOrigin",
+    "backgroundPosition",
+    "backgroundPositionX",
+    "backgroundPositionY",
+    "backgroundRepeat",
+    "backgroundRepeatX",
+    "backgroundRepeatY",
+    "backgroundSize",
+    "baselineShift",
+    "border",
+    "borderBottom",
+    "borderBottomColor",
+    "borderBottomLeftRadius",
+    "borderBottomRightRadius",
+    "borderBottomStyle",
+    "borderBottomWidth",
+    "borderCollapse",
+    "borderColor",
+    "borderImage",
+    "borderImageOutset",
+    "borderImageRepeat",
+    "borderImageSlice",
+    "borderImageSource",
+    "borderImageWidth",
+    "borderLeft",
+    "borderLeftColor",
+    "borderLeftStyle",
+    "borderLeftWidth",
+    "borderRadius",
+    "borderRight",
+    "borderRightColor",
+    "borderRightStyle",
+    "borderRightWidth",
+    "borderSpacing",
+    "borderStyle",
+    "borderTop",
+    "borderTopColor",
+    "borderTopLeftRadius",
+    "borderTopRightRadius",
+    "borderTopStyle",
+    "borderTopWidth",
+    "borderWidth",
+    "bottom",
+    "boxShadow",
+    "boxSizing",
+    "bufferedRendering",
+    "captionSide",
+    "clear",
+    "clip",
+    "clipPath",
+    "clipRule",
+    "color",
+    "colorInterpolation",
+    "colorInterpolationFilters",
+    "colorRendering",
+    "content",
+    "counterIncrement",
+    "counterReset",
+    "cursor",
+    "cx",
+    "cy",
+    "direction",
+    "display",
+    "dominantBaseline",
+    "emptyCells",
+    "enableBackground",
+    "fill",
+    "fillOpacity",
+    "fillRule",
+    "filter",
+    "flex",
+    "flexBasis",
+    "flexDirection",
+    "flexFlow",
+    "flexGrow",
+    "flexShrink",
+    "flexWrap",
+    "float",
+    "floodColor",
+    "floodOpacity",
+    "font",
+    "fontFamily",
+    "fontKerning",
+    "fontSize",
+    "fontStretch",
+    "fontStyle",
+    "fontVariant",
+    "fontVariantLigatures",
+    "fontWeight",
+    "glyphOrientationHorizontal",
+    "glyphOrientationVertical",
+    "height",
+    "imageRendering",
+    "isolation",
+    "justifyContent",
+    "left",
+    "letterSpacing",
+    "lightingColor",
+    "lineHeight",
+    "listStyle",
+    "listStyleImage",
+    "listStylePosition",
+    "listStyleType",
+    "margin",
+    "marginBottom",
+    "marginLeft",
+    "marginRight",
+    "marginTop",
+    "marker",
+    "markerEnd",
+    "markerMid",
+    "markerStart",
+    "mask",
+    "maskType",
+    "maxHeight",
+    "maxWidth",
+    "maxZoom",
+    "minHeight",
+    "minWidth",
+    "minZoom",
+    "mixBlendMode",
+    "objectFit",
+    "objectPosition",
+    "opacity",
+    "order",
+    "orientation",
+    "orphans",
+    "outline",
+    "outlineColor",
+    "outlineOffset",
+    "outlineStyle",
+    "outlineWidth",
+    "overflow",
+    "overflowWrap",
+    "overflowX",
+    "overflowY",
+    "padding",
+    "paddingBottom",
+    "paddingLeft",
+    "paddingRight",
+    "paddingTop",
+    "page",
+    "pageBreakAfter",
+    "pageBreakBefore",
+    "pageBreakInside",
+    "paintOrder",
+    "perspective",
+    "perspectiveOrigin",
+    "pointerEvents",
+    "position",
+    "quotes",
+    "r",
+    "resize",
+    "right",
+    "rx",
+    "ry",
+    "shapeImageThreshold",
+    "shapeMargin",
+    "shapeOutside",
+    "shapeRendering",
+    "size",
+    "speak",
+    "src",
+    "stopColor",
+    "stopOpacity",
+    "stroke",
+    "strokeDasharray",
+    "strokeDashoffset",
+    "strokeLinecap",
+    "strokeLinejoin",
+    "strokeMiterlimit",
+    "strokeOpacity",
+    "strokeWidth",
+    "tabSize",
+    "tableLayout",
+    "textAlign",
+    "textAnchor",
+    "textDecoration",
+    "textIndent",
+    "textOverflow",
+    "textRendering",
+    "textShadow",
+    "textTransform",
+    "top",
+    "touchAction",
+    "transform",
+    "transformOrigin",
+    "transformStyle",
+    "transition",
+    "transitionDelay",
+    "transitionDuration",
+    "transitionProperty",
+    "transitionTimingFunction",
+    "unicodeBidi",
+    "unicodeRange",
+    "userZoom",
+    "userSelect",
+    "vectorEffect",
+    "verticalAlign",
+    "visibility",
+    "whiteSpace",
+    "widows",
+    "width",
+    "willChange",
+    "wordBreak",
+    "wordSpacing",
+    "wordWrap",
+    "writingMode",
+    "x",
+    "y",
+    "zIndex",
+    "zoom"
+];
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/transition.js-=@*/
+var prefixes = require(285),
+    prefixArray = require(295);
+
+
+module.exports = transition;
+
+
+var css = require(242);
+
+
+function transition(styles, transitions) {
+    var i, il, prefix;
+
+    if (css.stopPrefix !== true) {
+        i = -1;
+        il = prefixes.length - 1;
+
+        while (i++ < il) {
+            prefix = prefixes[i];
+            styles[prefix.js + "Transition"] = prefixArray(prefix.css, transitions).join(", ");
+        }
+    }
+
+    styles.transition = transitions.join(", ");
+
+    return styles;
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/textShadow.js-=@*/
+var prefixes = require(285);
+
+
+module.exports = textShadow;
+
+
+var css = require(242);
+
+
+function textShadow(styles, textShadows) {
+    var i, il, prefix;
+
+    if (css.stopPrefix !== true) {
+        i = -1;
+        il = prefixes.length - 1;
+
+        while (i++ < il) {
+            prefix = prefixes[i];
+            styles[prefix.js + "TextShadow"] = textShadows.join(", ");
+        }
+    }
+
+    styles.textShadow = textShadows.join(", ");
+
+    return styles;
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/nonPrefixProperties.js-=@*/
+module.exports = [
+    "parentRule",
+    "length",
+    "cssText",
+    "backfaceVisibility",
+    "background",
+    "backgroundAttachment",
+    "backgroundBlendMode",
+    "backgroundClip",
+    "backgroundColor",
+    "backgroundImage",
+    "backgroundOrigin",
+    "backgroundPosition",
+    "backgroundPositionX",
+    "backgroundPositionY",
+    "backgroundRepeat",
+    "backgroundRepeatX",
+    "backgroundRepeatY",
+    "baselineShift",
+    "border",
+    "borderBottom",
+    "borderBottomColor",
+    "borderBottomStyle",
+    "borderBottomWidth",
+    "borderCollapse",
+    "borderColor",
+    "borderImage",
+    "borderImageOutset",
+    "borderImageRepeat",
+    "borderImageSlice",
+    "borderImageSource",
+    "borderImageWidth",
+    "borderLeft",
+    "borderLeftColor",
+    "borderLeftStyle",
+    "borderLeftWidth",
+    "borderRight",
+    "borderRightColor",
+    "borderRightStyle",
+    "borderRightWidth",
+    "borderSpacing",
+    "borderStyle",
+    "borderTop",
+    "borderTopColor",
+    "borderTopStyle",
+    "borderTopWidth",
+    "borderWidth",
+    "bottom",
+    "bufferedRendering",
+    "captionSide",
+    "clear",
+    "clip",
+    "clipPath",
+    "clipRule",
+    "color",
+    "colorInterpolation",
+    "colorInterpolationFilters",
+    "colorRendering",
+    "content",
+    "counterIncrement",
+    "counterReset",
+    "cursor",
+    "cx",
+    "cy",
+    "direction",
+    "display",
+    "dominantBaseline",
+    "emptyCells",
+    "enableBackground",
+    "fill",
+    "fillOpacity",
+    "fillRule",
+    "filter",
+    "float",
+    "floodColor",
+    "floodOpacity",
+    "font",
+    "fontFamily",
+    "fontKerning",
+    "fontSize",
+    "fontStretch",
+    "fontStyle",
+    "fontVariant",
+    "fontVariantLigatures",
+    "fontWeight",
+    "glyphOrientationHorizontal",
+    "glyphOrientationVertical",
+    "height",
+    "imageRendering",
+    "isolation",
+    "justifyContent",
+    "left",
+    "letterSpacing",
+    "lightingColor",
+    "lineHeight",
+    "listStyle",
+    "listStyleImage",
+    "listStylePosition",
+    "listStyleType",
+    "margin",
+    "marginBottom",
+    "marginLeft",
+    "marginRight",
+    "marginTop",
+    "marker",
+    "markerEnd",
+    "markerMid",
+    "markerStart",
+    "mask",
+    "maskType",
+    "maxHeight",
+    "maxWidth",
+    "maxZoom",
+    "minHeight",
+    "minWidth",
+    "minZoom",
+    "mixBlendMode",
+    "objectFit",
+    "objectPosition",
+    "opacity",
+    "order",
+    "orientation",
+    "orphans",
+    "outline",
+    "outlineColor",
+    "outlineOffset",
+    "outlineStyle",
+    "outlineWidth",
+    "overflow",
+    "overflowWrap",
+    "overflowX",
+    "overflowY",
+    "padding",
+    "paddingBottom",
+    "paddingLeft",
+    "paddingRight",
+    "paddingTop",
+    "page",
+    "pageBreakAfter",
+    "pageBreakBefore",
+    "pageBreakInside",
+    "paintOrder",
+    "perspective",
+    "perspectiveOrigin",
+    "pointerEvents",
+    "position",
+    "quotes",
+    "r",
+    "resize",
+    "right",
+    "rx",
+    "ry",
+    "shapeImageThreshold",
+    "shapeMargin",
+    "shapeOutside",
+    "shapeRendering",
+    "size",
+    "speak",
+    "src",
+    "stopColor",
+    "stopOpacity",
+    "stroke",
+    "strokeDasharray",
+    "strokeDashoffset",
+    "strokeLinecap",
+    "strokeLinejoin",
+    "strokeMiterlimit",
+    "strokeOpacity",
+    "strokeWidth",
+    "tabSize",
+    "tableLayout",
+    "textAlign",
+    "textAnchor",
+    "textDecoration",
+    "textIndent",
+    "textOverflow",
+    "textRendering",
+    "textShadow",
+    "textTransform",
+    "top",
+    "touchAction",
+    "unicodeBidi",
+    "unicodeRange",
+    "userZoom",
+    "vectorEffect",
+    "verticalAlign",
+    "visibility",
+    "whiteSpace",
+    "widows",
+    "width",
+    "willChange",
+    "wordBreak",
+    "wordSpacing",
+    "wordWrap",
+    "writingMode",
+    "x",
+    "y",
+    "zIndex",
+    "zoom"
+];
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/opacity.js-=@*/
+var prefix = require(279);
+
+
+module.exports = opacity;
+
+
+var css = require(242);
+
+
+function opacity(styles, value) {
+    styles["-ms-filter"] = "progid:DXImageTransform.Microsoft.Alpha(opacity=" + value + ")";
+    styles.filter = "alpha(opacity=" + value + ")";
+    return prefix(styles, "opacity", value, null, css.stopPrefix);
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/prefixes/index.js-=@*/
+var environment = require(94);
+
+
+if (environment.browser) {
+    module.exports = require(292);
+} else {
+    module.exports = require(293);
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/easing.js-=@*/
+var easing = exports;
+
+
+easing.linear = "linear";
+
+easing.inSine = "cubic-bezier(0.47, 0, 0.745, 0.715)";
+easing.outSine = "cubic-bezier(0.39, 0.575, 0.565, 1)";
+easing.inOutSine = "cubic-bezier(0.445, 0.05, 0.55, 0.95)";
+
+easing.inQuad = "cubic-bezier(0.55, 0.085, 0.68, 0.53)";
+easing.outQuad = "cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+easing.inOutQuad = "cubic-bezier(0.455, 0.03, 0.515, 0.955)";
+
+easing.inCubic = "cubic-bezier(0.55, 0.055, 0.675, 0.19)";
+easing.outCubic = "cubic-bezier(0.215, 0.61, 0.355, 1)";
+easing.inOutCubic = "cubic-bezier(0.645, 0.045, 0.355, 1)";
+
+easing.inQuart = "cubic-bezier(0.895, 0.03, 0.685, 0.22)";
+easing.outQuart = "cubic-bezier(0.165, 0.84, 0.44, 1)";
+easing.inOutQuart = "cubic-bezier(0.77, 0, 0.175, 1)";
+
+easing.inQuint = "cubic-bezier(0.755, 0.05, 0.855, 0.06)";
+easing.outQuint = "cubic-bezier(0.23, 1, 0.32, 1)";
+easing.inOutQuint = "cubic-bezier(0.86, 0, 0.07, 1)";
+
+easing.inExpo = "cubic-bezier(0.95, 0.05, 0.795, 0.035)";
+easing.outExpo = "cubic-bezier(0.19, 1, 0.22, 1)";
+easing.inOutExpo = "cubic-bezier(1, 0, 0, 1)";
+
+easing.inCirc = "cubic-bezier(0.6, 0.04, 0.98, 0.335)";
+easing.outCirc = "cubic-bezier(0.075, 0.82, 0.165, 1)";
+easing.inOutCirc = "cubic-bezier(0.785, 0.135, 0.15, 0.86)";
+
+easing.inBack = "cubic-bezier(0.6, -0.28, 0.735, 0.045)";
+easing.outBack = "cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+easing.inOutBack = "cubic-bezier(0.68, -0.55, 0.265, 1.55)";
+
+easing["in"] = "cubic-bezier(0.755, 0.05, 0.855, 0.06)";
+easing.out = "cubic-bezier(0.23, 1, 0.32, 1)";
+easing.inOut = "cubic-bezier(0.445, 0.05, 0.55, 0.95)";
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/colors.js-=@*/
+module.exports = {
+    red50: "#ffebee",
+    red100: "#ffcdd2",
+    red200: "#ef9a9a",
+    red300: "#e57373",
+    red400: "#ef5350",
+    red500: "#f44336",
+    red600: "#e53935",
+    red700: "#d32f2f",
+    red800: "#c62828",
+    red900: "#b71c1c",
+    redA100: "#ff8a80",
+    redA200: "#ff5252",
+    redA400: "#ff1744",
+    redA700: "#d50000",
+
+    pink50: "#fce4ec",
+    pink100: "#f8bbd0",
+    pink200: "#f48fb1",
+    pink300: "#f06292",
+    pink400: "#ec407a",
+    pink500: "#e91e63",
+    pink600: "#d81b60",
+    pink700: "#c2185b",
+    pink800: "#ad1457",
+    pink900: "#880e4f",
+    pinkA100: "#ff80ab",
+    pinkA200: "#ff4081",
+    pinkA400: "#f50057",
+    pinkA700: "#c51162",
+
+    purple50: "#f3e5f5",
+    purple100: "#e1bee7",
+    purple200: "#ce93d8",
+    purple300: "#ba68c8",
+    purple400: "#ab47bc",
+    purple500: "#9c27b0",
+    purple600: "#8e24aa",
+    purple700: "#7b1fa2",
+    purple800: "#6a1b9a",
+    purple900: "#4a148c",
+    purpleA100: "#ea80fc",
+    purpleA200: "#e040fb",
+    purpleA400: "#d500f9",
+    purpleA700: "#aa00ff",
+
+    deepPurple50: "#ede7f6",
+    deepPurple100: "#d1c4e9",
+    deepPurple200: "#b39ddb",
+    deepPurple300: "#9575cd",
+    deepPurple400: "#7e57c2",
+    deepPurple500: "#673ab7",
+    deepPurple600: "#5e35b1",
+    deepPurple700: "#512da8",
+    deepPurple800: "#4527a0",
+    deepPurple900: "#311b92",
+    deepPurpleA100: "#b388ff",
+    deepPurpleA200: "#7c4dff",
+    deepPurpleA400: "#651fff",
+    deepPurpleA700: "#6200ea",
+
+    indigo50: "#e8eaf6",
+    indigo100: "#c5cae9",
+    indigo200: "#9fa8da",
+    indigo300: "#7986cb",
+    indigo400: "#5c6bc0",
+    indigo500: "#3f51b5",
+    indigo600: "#3949ab",
+    indigo700: "#303f9f",
+    indigo800: "#283593",
+    indigo900: "#1a237e",
+    indigoA100: "#8c9eff",
+    indigoA200: "#536dfe",
+    indigoA400: "#3d5afe",
+    indigoA700: "#304ffe",
+
+    blue50: "#e3f2fd",
+    blue100: "#bbdefb",
+    blue200: "#90caf9",
+    blue300: "#64b5f6",
+    blue400: "#42a5f5",
+    blue500: "#2196f3",
+    blue600: "#1e88e5",
+    blue700: "#1976d2",
+    blue800: "#1565c0",
+    blue900: "#0d47a1",
+    blueA100: "#82b1ff",
+    blueA200: "#448aff",
+    blueA400: "#2979ff",
+    blueA700: "#2962ff",
+
+    lightBlue50: "#e1f5fe",
+    lightBlue100: "#b3e5fc",
+    lightBlue200: "#81d4fa",
+    lightBlue300: "#4fc3f7",
+    lightBlue400: "#29b6f6",
+    lightBlue500: "#03a9f4",
+    lightBlue600: "#039be5",
+    lightBlue700: "#0288d1",
+    lightBlue800: "#0277bd",
+    lightBlue900: "#01579b",
+    lightBlueA100: "#80d8ff",
+    lightBlueA200: "#40c4ff",
+    lightBlueA400: "#00b0ff",
+    lightBlueA700: "#0091ea",
+
+    cyan50: "#e0f7fa",
+    cyan100: "#b2ebf2",
+    cyan200: "#80deea",
+    cyan300: "#4dd0e1",
+    cyan400: "#26c6da",
+    cyan500: "#00bcd4",
+    cyan600: "#00acc1",
+    cyan700: "#0097a7",
+    cyan800: "#00838f",
+    cyan900: "#006064",
+    cyanA100: "#84ffff",
+    cyanA200: "#18ffff",
+    cyanA400: "#00e5ff",
+    cyanA700: "#00b8d4",
+
+    teal50: "#e0f2f1",
+    teal100: "#b2dfdb",
+    teal200: "#80cbc4",
+    teal300: "#4db6ac",
+    teal400: "#26a69a",
+    teal500: "#009688",
+    teal600: "#00897b",
+    teal700: "#00796b",
+    teal800: "#00695c",
+    teal900: "#004d40",
+    tealA100: "#a7ffeb",
+    tealA200: "#64ffda",
+    tealA400: "#1de9b6",
+    tealA700: "#00bfa5",
+
+    green50: "#e8f5e9",
+    green100: "#c8e6c9",
+    green200: "#a5d6a7",
+    green300: "#81c784",
+    green400: "#66bb6a",
+    green500: "#4caf50",
+    green600: "#43a047",
+    green700: "#388e3c",
+    green800: "#2e7d32",
+    green900: "#1b5e20",
+    greenA100: "#b9f6ca",
+    greenA200: "#69f0ae",
+    greenA400: "#00e676",
+    greenA700: "#00c853",
+
+    lightGreen50: "#f1f8e9",
+    lightGreen100: "#dcedc8",
+    lightGreen200: "#c5e1a5",
+    lightGreen300: "#aed581",
+    lightGreen400: "#9ccc65",
+    lightGreen500: "#8bc34a",
+    lightGreen600: "#7cb342",
+    lightGreen700: "#689f38",
+    lightGreen800: "#558b2f",
+    lightGreen900: "#33691e",
+    lightGreenA100: "#ccff90",
+    lightGreenA200: "#b2ff59",
+    lightGreenA400: "#76ff03",
+    lightGreenA700: "#64dd17",
+
+    lime50: "#f9fbe7",
+    lime100: "#f0f4c3",
+    lime200: "#e6ee9c",
+    lime300: "#dce775",
+    lime400: "#d4e157",
+    lime500: "#cddc39",
+    lime600: "#c0ca33",
+    lime700: "#afb42b",
+    lime800: "#9e9d24",
+    lime900: "#827717",
+    limeA100: "#f4ff81",
+    limeA200: "#eeff41",
+    limeA400: "#c6ff00",
+    limeA700: "#aeea00",
+
+    yellow50: "#fffde7",
+    yellow100: "#fff9c4",
+    yellow200: "#fff59d",
+    yellow300: "#fff176",
+    yellow400: "#ffee58",
+    yellow500: "#ffeb3b",
+    yellow600: "#fdd835",
+    yellow700: "#fbc02d",
+    yellow800: "#f9a825",
+    yellow900: "#f57f17",
+    yellowA100: "#ffff8d",
+    yellowA200: "#ffff00",
+    yellowA400: "#ffea00",
+    yellowA700: "#ffd600",
+
+    amber50: "#fff8e1",
+    amber100: "#ffecb3",
+    amber200: "#ffe082",
+    amber300: "#ffd54f",
+    amber400: "#ffca28",
+    amber500: "#ffc107",
+    amber600: "#ffb300",
+    amber700: "#ffa000",
+    amber800: "#ff8f00",
+    amber900: "#ff6f00",
+    amberA100: "#ffe57f",
+    amberA200: "#ffd740",
+    amberA400: "#ffc400",
+    amberA700: "#ffab00",
+
+    orange50: "#fff3e0",
+    orange100: "#ffe0b2",
+    orange200: "#ffcc80",
+    orange300: "#ffb74d",
+    orange400: "#ffa726",
+    orange500: "#ff9800",
+    orange600: "#fb8c00",
+    orange700: "#f57c00",
+    orange800: "#ef6c00",
+    orange900: "#e65100",
+    orangeA100: "#ffd180",
+    orangeA200: "#ffab40",
+    orangeA400: "#ff9100",
+    orangeA700: "#ff6d00",
+
+    deepOrange50: "#fbe9e7",
+    deepOrange100: "#ffccbc",
+    deepOrange200: "#ffab91",
+    deepOrange300: "#ff8a65",
+    deepOrange400: "#ff7043",
+    deepOrange500: "#ff5722",
+    deepOrange600: "#f4511e",
+    deepOrange700: "#e64a19",
+    deepOrange800: "#d84315",
+    deepOrange900: "#bf360c",
+    deepOrangeA100: "#ff9e80",
+    deepOrangeA200: "#ff6e40",
+    deepOrangeA400: "#ff3d00",
+    deepOrangeA700: "#dd2c00",
+
+    brown50: "#efebe9",
+    brown100: "#d7ccc8",
+    brown200: "#bcaaa4",
+    brown300: "#a1887f",
+    brown400: "#8d6e63",
+    brown500: "#795548",
+    brown600: "#6d4c41",
+    brown700: "#5d4037",
+    brown800: "#4e342e",
+    brown900: "#3e2723",
+
+    blueGrey50: "#eceff1",
+    blueGrey100: "#cfd8dc",
+    blueGrey200: "#b0bec5",
+    blueGrey300: "#90a4ae",
+    blueGrey400: "#78909c",
+    blueGrey500: "#607d8b",
+    blueGrey600: "#546e7a",
+    blueGrey700: "#455a64",
+    blueGrey800: "#37474f",
+    blueGrey900: "#263238",
+
+    grey50: "#fafafa",
+    grey100: "#f5f5f5",
+    grey200: "#eeeeee",
+    grey300: "#e0e0e0",
+    grey400: "#bdbdbd",
+    grey500: "#9e9e9e",
+    grey600: "#757575",
+    grey700: "#616161",
+    grey800: "#424242",
+    grey900: "#212121",
+
+    black: "#000000",
+    white: "#ffffff",
+
+    transparent: "rgba(0, 0, 0, 0)",
+    fullBlack: "rgba(0, 0, 0, 1)",
+    darkBlack: "rgba(0, 0, 0, 0.87)",
+    lightBlack: "rgba(0, 0, 0, 0.54)",
+    minBlack: "rgba(0, 0, 0, 0.26)",
+    faintBlack: "rgba(0, 0, 0, 0.12)",
+    fullWhite: "rgba(255, 255, 255, 1)",
+    darkWhite: "rgba(255, 255, 255, 0.87)",
+    lightWhite: "rgba(255, 255, 255, 0.54)"
+
+};
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/Styles.js-=@*/
+var arrayForEach = require(43),
+    indexOf = require(55),
+    capitalizeString = require(98),
+    transition = require(281),
+    textShadow = require(282),
+    properties = require(280),
+    nonPrefixProperties = require(283),
+    prefix = require(279);
+
+
+var Array_slice = Array.prototype.slice,
+    StylesPrototype;
+
+
+module.exports = Styles;
+
+
+var css = require(242);
+
+
+function Styles() {}
+StylesPrototype = Styles.prototype;
+
+arrayForEach(properties, function(key) {
+    if (indexOf(nonPrefixProperties, key) === -1) {
+        StylesPrototype["set" + capitalizeString(key)] = function(value) {
+            return prefix(this, key, value, null, css.stopPrefix);
+        };
+    } else {
+        StylesPrototype["set" + capitalizeString(key)] = function(value) {
+            this[key] = value;
+            return this;
+        };
+    }
+});
+
+StylesPrototype.setTransition = function() {
+    return transition(this, Array_slice.call(arguments));
+};
+
+StylesPrototype.setTextShadow = function() {
+    return textShadow(this, Array_slice.call(arguments));
+};
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/manipulators/darken.js-=@*/
+var color = require(230),
+    toStyle = require(296);
+
+
+var darken_color = color.create();
+
+
+module.exports = darken;
+
+
+function darken(style, amount) {
+    var value = darken_color,
+        alpha;
+    color.fromStyle(value, style);
+    alpha = value[3];
+    color.smul(value, value, 1 - amount);
+    color.cnormalize(value, value);
+    value[3] = alpha;
+    return toStyle(value);
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/manipulators/fade.js-=@*/
+var color = require(230),
+    toStyle = require(296);
+
+
+var fade_color = color.create();
+
+
+module.exports = fade;
+
+
+function fade(style, amount) {
+    var value = fade_color;
+    color.fromStyle(value, style);
+    value[3] *= amount;
+    return toStyle(value);
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/manipulators/lighten.js-=@*/
+var color = require(230),
+    toStyle = require(296);
+
+
+var lighten_color = color.create();
+
+
+module.exports = lighten;
+
+
+function lighten(style, amount) {
+    var value = lighten_color,
+        alpha;
+    color.fromStyle(value, style);
+    alpha = value[3];
+    color.smul(value, value, 1 + amount);
+    color.cnormalize(value, value);
+    value[3] = alpha;
+    return toStyle(value);
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/prefixes/browser.js-=@*/
+var environment = require(94),
+    getCurrentStyle = require(91),
+    Prefix = require(294);
+
+
+var document = environment.document,
+
+    styles = getCurrentStyle(document.documentElement || document.body.parentNode),
+
+    pre = (
+        Array.prototype.slice.call(styles).join("").match(/-(moz|webkit|ms)-/) ||
+        (styles.OLink === "" && ["", "0"])
+    )[1],
+
+    dom = ("WebKit|Moz|MS|O").match(new RegExp("(" + pre + ")", "i"))[1];
+
+
+module.exports = [new Prefix(dom, pre)];
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/prefixes/node.js-=@*/
+var Prefix = require(294);
+
+
+module.exports = [
+    new Prefix("WebKit", "webkit"),
+    new Prefix("Moz", "moz"),
+    new Prefix("MS", "ms"),
+    new Prefix("O", "o")
+];
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/prefixes/Prefix.js-=@*/
+var capitalizeString = require(98);
+
+
+module.exports = Prefix;
+
+
+function Prefix(dom, pre) {
+    this.dom = dom;
+    this.lowercase = pre;
+    this.css = "-" + pre + "-";
+    this.js = capitalizeString(pre);
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/prefixArray.js-=@*/
+module.exports = prefixArray;
+
+
+function prefixArray(prefix, array) {
+    var length = array.length,
+        i = -1,
+        il = length - 1,
+        out = new Array(length);
+
+    while (i++ < il) {
+        out[i] = prefix + array[i];
+    }
+
+    return out;
+}
+
+},
+function(require, exports, module, undefined, global) {
+/*@=-@nathanfaucett/css@0.0.1/src/manipulators/toStyle.js-=@*/
+var color = require(230);
+
+
+module.exports = toStyle;
+
+
+function toStyle(value) {
+    if (value[3] === 1) {
+        return color.toHEX(value);
+    } else {
+        return color.toRGBA(value);
+    }
 }
 
 }], {}, void(0), (new Function("return this;"))()));
